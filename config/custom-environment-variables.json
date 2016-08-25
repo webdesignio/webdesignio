@@ -1,2 +1,5 @@
 {
+  "mongodb": "MONGODB_URI",
+  "redis": "REDISCLOUD_URL",
+  "secret": "SECRET"
 }
