@@ -9,8 +9,8 @@ module.exports = buildWebsite
 
 function buildWebsite (req, res, next) {
   const job = queue.create('build_website', {
-    title: 'build website ' + req.params.website,
-    id: req.params.website
+    title: 'build website ' + req.query.website,
+    id: req.query.website
   })
   job.save()
   res.send(job)

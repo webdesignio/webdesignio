@@ -19,7 +19,7 @@ Object.assign(fleet,
 function deploy (req, res, next) {
   parseFiles(req)
     .then(incomingFiles =>
-      fleet.diff({ incomingFiles, website: req.params.website })
+      fleet.diff({ incomingFiles, website: req.query.website })
     )
     .then(diff =>
       fleet
@@ -63,18 +63,18 @@ function parseFiles (req) {
       if (fieldname === 'assets') {
         fleet.log.info('uploading assets', {
           filename: fieldname,
-          metadata: { website: req.params.website, type: 'assets' }
+          metadata: { website: req.query.website, type: 'assets' }
         })
         observer.onNext(
           replaceFile({
             gfs,
             query: {
-              'metadata.website': req.params.website,
+              'metadata.website': req.query.website,
               filename: 'assets'
             },
             data: {
               filename: fieldname,
-              metadata: { website: req.params.website, type: 'assets' }
+              metadata: { website: req.query.website, type: 'assets' }
             },
             file
           })
@@ -90,7 +90,7 @@ function parseFiles (req) {
       }
       const query = {
         filename: fieldname,
-        'metadata.website': req.params.website
+        'metadata.website': req.query.website
       }
       observer.onNext(
         replaceFile({
@@ -101,7 +101,7 @@ function parseFiles (req) {
             metadata: Object.assign(
               {},
               metadata[fieldname],
-              { website: req.params.website, type }
+              { website: req.query.website, type }
             )
           },
           file

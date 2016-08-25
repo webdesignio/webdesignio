@@ -35,7 +35,6 @@ auth
   )
   .use((req, res, next) => {
     if (!req.auth) return next()
-    console.log('api auth')
     fleet.getUser({ id: req.auth.user })
       .then(user => {
         if (!user || !user.isActive) throw error(401, 'User is disabled')

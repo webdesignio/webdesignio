@@ -14,8 +14,8 @@ const fleet = Object.assign(
 
 service.use(json())
 
-service.get('/:website', (req, res, next) => {
-  const { website } = req.params
+service.get('/', (req, res, next) => {
+  const { website } = req.query
   fleet.getWebsite({ id: website })
     .then(website =>
       website
@@ -26,8 +26,8 @@ service.get('/:website', (req, res, next) => {
     .catch(next)
 })
 
-service.put('/:website', (req, res, next) => {
-  const { website } = req.params
+service.put('/', (req, res, next) => {
+  const { website } = req.query
   fleet.updateWebsite({
     data: Object.assign({}, req.body, { _id: website })
   })

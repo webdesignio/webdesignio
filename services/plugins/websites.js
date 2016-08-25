@@ -4,6 +4,8 @@ const mongoose = require('mongoose')
 
 const Website = mongoose.model('websites', {
   _id: { type: String, required: true, unique: true },
+  owner: { type: String, required: true },
+  users: [String],
   defaultLanguage: { type: String, required: true },
   languages: { type: [String] },
   noLangFields: { type: [String] },

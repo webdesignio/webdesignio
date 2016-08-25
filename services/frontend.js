@@ -11,6 +11,9 @@ const config = require('config')
 const throng = require('throng')
 const cors = require('cors')
 
+const apiAuthorization = require('./api_authorization')
+const api = require('./api')
+
 const concurrency = process.env.WEB_CONCURRENCY || 1
 
 throng(parseInt(concurrency), () => {
@@ -27,7 +30,7 @@ throng(parseInt(concurrency), () => {
   }))
   frontend.use('/api/v1', cors())
   frontend.use('/api/v1', require('./api_auth'))
-  frontend.use('/api/v1', require('./api'))
+  frontend.use('/api/v1', apiAuthorization(api))
   frontend.use(require('./app_auth'))
   frontend.use(require('./app'))
   const server = http.createServer(frontend)
