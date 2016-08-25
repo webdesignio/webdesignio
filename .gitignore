@@ -1,0 +1,8 @@
+npm-debug.log
+mongod.log
+redis.log
+dump.rdb
+node_modules/*
+data/*
+!data/.keep
+output/*

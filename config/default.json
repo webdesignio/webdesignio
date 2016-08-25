@@ -1,0 +1,5 @@
+{
+  "mongodb": "mongodb://localhost/webdesignio",
+  "redis": "redis://localhost",
+  "secret": "keyboard cat"
+}
