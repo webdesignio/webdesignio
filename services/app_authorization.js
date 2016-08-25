@@ -15,7 +15,9 @@ function appAuthorization (upstream) {
   return (req, res, next) => {
     const userID = req.headers['x-user']
     const websiteID = req.headers['x-website']
-    if (!websiteID) return upstream(req, res, next)
+    if (!websiteID || req.url === '/login') {
+      return upstream(req, res, next)
+    }
     return fleet.getWebsite({ id: websiteID })
       .then(website =>
         (
