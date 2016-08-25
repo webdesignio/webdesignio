@@ -2,14 +2,16 @@
 
 module.exports = extractWebsiteID
 
-function extractWebsiteID (req, res, next) {
-  const host = hostnameof(req)
-  if (!host) return null
-  if (!host.split('.').length === 3) return null
-  const vhost = host.split('.')[0]
-  if (vhost === 'www') return null
-  req.headers['x-website'] = vhost
-  next()
+function extractWebsiteID (upstream) {
+  return (req, res, next) => {
+    const host = hostnameof(req)
+    if (!host) return null
+    if (!host.split('.').length === 3) return null
+    const vhost = host.split('.')[0]
+    if (vhost === 'www') return null
+    req.headers['x-website'] = vhost
+    upstream(req, res, next)
+  }
 }
 
 function hostnameof (req) {

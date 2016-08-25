@@ -13,6 +13,9 @@ const cors = require('cors')
 
 const apiAuthorization = require('./api_authorization')
 const api = require('./api')
+const extractWebsiteID = require('./extract_website')
+const appAuthorization = require('./app_authorization')
+const app = require('./app')
 
 const concurrency = process.env.WEB_CONCURRENCY || 1
 
@@ -32,7 +35,7 @@ throng(parseInt(concurrency), () => {
   frontend.use('/api/v1', require('./api_auth'))
   frontend.use('/api/v1', apiAuthorization(api))
   frontend.use(require('./app_auth'))
-  frontend.use(require('./app'))
+  frontend.use(extractWebsiteID(appAuthorization(app)))
   const server = http.createServer(frontend)
   if (frontend.get('env') === 'development') {
     kue.app.listen(3001)

@@ -1,5 +1,8 @@
 {
   "mongodb": "mongodb://localhost/webdesignio",
   "redis": "redis://localhost",
-  "secret": "keyboard cat"
+  "secret": "keyboard cat",
+  "errorPages": {
+    "forbidden": "https://www.webdesignio.de/forbidden"
+  }
 }
