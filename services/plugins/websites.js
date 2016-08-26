@@ -17,15 +17,5 @@ const Website = mongoose.model('websites', new mongoose.Schema({
 module.exports = {
   getWebsite ({ id }) {
     return Website.findById(id)
-  },
-
-  updateWebsite ({ data, owner }) {
-    return Website.findById(data._id)
-      .then(website =>
-        website == null
-          ? new Website(Object.assign({}, data, { owner }))
-          : Object.assign(website, data)
-      )
-      .then(website => website.save())
   }
 }

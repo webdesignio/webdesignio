@@ -8,6 +8,12 @@
     "test": "ava",
     "worker": "node bin/webdesignio-engine.js worker"
   },
+  "ava": {
+    "files": "services/**/*_test.js"
+  },
+  "standard": {
+    "parser": "babel-eslint"
+  },
   "bin": {
     "webdesignio-engine": "bin/webdesignio-engine.js"
   },
@@ -27,9 +33,11 @@
     "express-jwt": "^3.4.0",
     "gridfs-stream": "^1.1.1",
     "http-errors": "^1.5.0",
+    "jsonschema": "^1.1.0",
     "jsonwebtoken": "^7.1.8",
     "kue": "^0.11.1",
     "lodash": "^4.13.1",
+    "micro": "^6.0.1",
     "mkdirp": "^0.5.1",
     "mongoose": "^4.5.5",
     "morgan": "^1.7.0",
@@ -45,8 +53,13 @@
     "yauzl": "^2.6.0"
   },
   "devDependencies": {
+    "ava": "^0.16.0",
+    "babel-eslint": "^6.1.2",
+    "node-fetch": "^1.6.0",
     "nodemon": "^1.9.2",
-    "standard": "^7.1.2"
+    "sinon": "^1.17.5",
+    "standard": "^7.1.2",
+    "test-listen": "^1.0.0"
   },
   "engines": {
     "node": "^6.3.0",
