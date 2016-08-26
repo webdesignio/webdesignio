@@ -29,7 +29,8 @@ service.get('/', (req, res, next) => {
 service.put('/', (req, res, next) => {
   const { website } = req.query
   fleet.updateWebsite({
-    data: Object.assign({}, req.body, { _id: website })
+    data: Object.assign({}, req.body, { _id: website }),
+    owner: req.headers['x-user']
   })
   .then(website => res.send(mask(website)))
   .catch(next)
