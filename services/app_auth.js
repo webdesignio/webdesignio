@@ -7,8 +7,6 @@ const bunyan = require('bunyan')
 const cookie = require('cookie')
 const error = require('http-errors')
 
-const { handleAppError } = require('../lib/error_handlers')
-
 const auth = module.exports = express()
 
 const fleet = Object.assign(
@@ -37,4 +35,10 @@ auth
       })
       .catch(next)
   })
-  .use(handleAppError)
+  .use((err, req, res, next) => {
+    if (err.name === 'UnauthorizedError') {
+      res.redirect('/login')
+      return
+    }
+    next(err)
+  })
