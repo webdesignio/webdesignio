@@ -23,6 +23,7 @@ throng(parseInt(concurrency), () => {
   mongoose.Promise = Promise
   mongoose.connect(config.get('mongodb'))
 
+  const { websites, users } = mongoose.connection.collections
   const log = bunyan.createLogger({ name: 'frontend' })
   const frontend = express()
   const loggerFormat = frontend.get('env') === 'development'
@@ -34,8 +35,17 @@ throng(parseInt(concurrency), () => {
   frontend.use('/api/v1', cors())
   frontend.use('/api/v1', require('./api_auth'))
   frontend.use('/api/v1', apiAuthorization(api))
-  frontend.use(require('./app_auth'))
-  frontend.use(extractWebsiteID(appAuthorization(app)))
+  frontend.use(
+    extractWebsiteID(
+      appAuthorization({
+        app,
+        secret: config.get('secret'),
+        errorPages: config.get('errorPages'),
+        websites,
+        users
+      })
+    )
+  )
   const server = http.createServer(frontend)
   if (frontend.get('env') === 'development') {
     kue.app.listen(3001)
