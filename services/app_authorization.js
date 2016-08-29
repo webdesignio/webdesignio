@@ -1,7 +1,6 @@
 'use strict'
 
 const cookie = require('cookie')
-const error = require('http-errors')
 const { verify } = require('jsonwebtoken')
 const Bluebird = require('bluebird')
 const { sendError, createError } = require('micro')
@@ -17,21 +16,28 @@ function appAuthorization ({ secret, errorPages, websites, users, app }) {
     if (req.url === '/login') return app(req, res, next)
     return Promise.all([
       verifyAsync(token, secret, null)
-        .catch(e => { throw createError(401) })
-        .then(({ user: _id }) => users.findOne({ _id })),
+        .then(({ user: _id }) => users.findOne({ _id }))
+        .catch(e =>
+          (e.name === 'TokenExpiredError' || e.name === 'JsonWebTokenError')
+            ? Promise.resolve(null)
+            : Promise.reject(e)
+        ),
       websites.findOne({ _id: websiteID })
     ])
     .then(([user, website]) =>
-      !user || !user.isActive
-        ? Promise.reject(401)
+      !website
+        ? Promise.reject(createError(404))
         : (
-          (
-            website &&
-            website.owner !== user._id &&
-            website.users.indexOf(user._id) === -1
-          )
-          ? Promise.reject(error(403))
-          : (!website ? Promise.reject(404) : app(req, res, next))
+          !user || !user.isActive
+            ? Promise.reject(createError(401))
+            : (
+              (
+                website.owner !== user._id &&
+                website.users.indexOf(user._id) === -1
+              )
+              ? Promise.reject(createError(403))
+              : app(req, res, next)
+            )
         )
     )
     .catch(err => {
@@ -40,6 +46,9 @@ function appAuthorization ({ secret, errorPages, websites, users, app }) {
         res.end('Redirecting ...')
       } else if (err.statusCode === 401) {
         res.writeHead(302, { location: '/login' })
+        res.end('Redirecting to /login ...')
+      } else if (err.statusCode === 404) {
+        res.writeHead(302, { location: errorPages.notFound })
         res.end('Redirecting to /login ...')
       } else {
         sendError(req, res, err)

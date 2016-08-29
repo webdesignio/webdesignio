@@ -45,6 +45,31 @@ test('rejects with invalid token', async t => {
   t.falsy(app.calledOnce)
 })
 
+test('sends not-found with valid user and non-existent website', async t => {
+  const app = spy((req, res) => res.end())
+  const website = null
+  const user = { _id: '1', isActive: true }
+  const websites = { findOne () { return website } }
+  const users = { findOne () { return user } }
+  const secret = 'foobar'
+  const token = sign({ user: '1' }, secret)
+  const errorPages = { notFound: 'notfound' }
+  const url = await listen(createServer(appAuthorization({
+    app,
+    secret,
+    users,
+    websites,
+    errorPages
+  })))
+  const res = await fetch(`${url}`, {
+    redirect: 'manual',
+    headers: { cookie: `token=${token}` }
+  })
+  t.is(res.status, 302)
+  t.is(res.headers._headers.location[0], `${url}/${errorPages.notFound}`)
+  t.falsy(app.calledOnce)
+})
+
 test('sends forbidden with valid user and valid website', async t => {
   const app = spy((req, res) => res.end())
   const website = { owner: '', users: [] }

@@ -3,6 +3,7 @@
   "redis": "redis://localhost",
   "secret": "keyboard cat",
   "errorPages": {
-    "forbidden": "https://www.webdesignio.de/forbidden"
+    "forbidden": "https://www.webdesignio.de/forbidden",
+    "notFound": "https://www.webdesignio.de/notfound"
   }
 }
