@@ -6,6 +6,10 @@ const drivers = {
   surge: require('./surge')
 }
 
+if (process.env.NODE_ENV !== 'production') {
+  Object.assign(drivers, { static: require('./static') })
+}
+
 module.exports = {
   runDriver ({ name, website, language, output }) {
     const driver = drivers[name]

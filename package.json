@@ -57,6 +57,7 @@
     "babel-eslint": "^6.1.2",
     "node-fetch": "^1.6.0",
     "nodemon": "^1.9.2",
+    "shelljs": "^0.7.4",
     "sinon": "^1.17.5",
     "standard": "^7.1.2",
     "test-listen": "^1.0.0"
