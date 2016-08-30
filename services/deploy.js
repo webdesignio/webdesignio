@@ -126,7 +126,7 @@ function replaceFile ({ gfs, query, data, file }) {
     gfs.files.findOne(query, (err, fileObject) => {
       if (err) return reject(err)
       if (fileObject) {
-        return gfs.remove(query, writeFile)
+        return gfs.remove({ _id: fileObject._id }, writeFile)
       }
       writeFile()
 
