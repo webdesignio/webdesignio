@@ -171,7 +171,6 @@ function buildObjects ({ website, components, tmpPath }) {
 
 function loadAssets ({ website }) {
   const gfs = Grid(mongoose.connection.db, mongoose.mongo)
-  fleet.log.info('loading assets')
   return new Promise((resolve, reject) => {
     tmp.file((err, path) => {
       if (err) return reject(err)
@@ -180,7 +179,8 @@ function loadAssets ({ website }) {
   })
   .then(tmpPath =>
     new Promise((resolve, reject) => {
-      fleet.log.info('saving assets on harddisk')
+      console.log('saving assets on harddisk', website, tmpPath)
+      console.log('loading assets', { filename: 'assets', 'metadata.website': website })
       gfs.createReadStream({ filename: 'assets', 'metadata.website': website })
         .on('error', reject)
         .pipe(fs.createWriteStream(tmpPath))
@@ -191,7 +191,7 @@ function loadAssets ({ website }) {
 }
 
 function extractAssets ({ tmpPath, output, website, language }) {
-  fleet.log.info('extracting assets to', output)
+  console.log('extracting assets to', output)
   return new Promise((resolve, reject) => {
     yauzl.open(tmpPath, { lazyEntries: true }, (err, zipFile) => {
       if (err) return reject(err)
