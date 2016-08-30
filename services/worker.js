@@ -181,11 +181,15 @@ function loadAssets ({ website }) {
     new Promise((resolve, reject) => {
       console.log('saving assets on harddisk', website, tmpPath)
       console.log('loading assets', { filename: 'assets', 'metadata.website': website })
-      gfs.createReadStream({ filename: 'assets', 'metadata.website': website })
-        .on('error', reject)
-        .pipe(fs.createWriteStream(tmpPath))
-        .on('error', reject)
-        .on('close', () => resolve(tmpPath))
+      gfs.files.findOne({ filename: 'assets', 'metadata.website': website })
+        .then(file => {
+          if (!file) throw new Error('No assets available!')
+          gfs.createReadStream({ _id: file._id })
+            .on('error', reject)
+            .pipe(fs.createWriteStream(tmpPath))
+            .on('error', reject)
+            .on('close', () => resolve(tmpPath))
+        })
     })
   )
 }
