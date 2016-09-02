@@ -10,6 +10,7 @@ const kue = require('kue')
 const config = require('config')
 const throng = require('throng')
 const cors = require('cors')
+require('async-to-gen/register')
 
 const apiAuthorization = require('./api_authorization')
 const api = require('./api')
