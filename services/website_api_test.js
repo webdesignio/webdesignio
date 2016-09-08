@@ -1,8 +1,8 @@
 import test from 'ava'
 import { stub } from 'sinon'
 import listen from 'test-listen'
-import http from 'http'
 import fetch from 'node-fetch'
+import micro from 'micro'
 
 const websiteAPI = require('./website_api')
 
@@ -10,12 +10,12 @@ test('creates website with default values', async t => {
   const user = 'test-user-123'
   const insertOne = stub().returns(Promise.resolve(null))
   const service = websiteAPI({
-    collection: {
+    websites: {
       findOne: () => Promise.resolve(null),
       insertOne
     }
   })
-  const url = await listen(http.createServer(service))
+  const url = await listen(micro(service))
   const res = await fetch(`${url}?website=my-site`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-User': user },
@@ -57,12 +57,12 @@ test('creates website with default values', async t => {
   }
   const updateOne = stub().returns(Promise.resolve(null))
   const service = websiteAPI({
-    collection: {
+    websites: {
       findOne: () => Promise.resolve(existingWebsite),
       updateOne
     }
   })
-  const url = await listen(http.createServer(service))
+  const url = await listen(micro(service))
   const newFields = { my_field: { value: 1 } }
   const res = await fetch(`${url}?website=my-site`, {
     method: 'PUT',
@@ -102,8 +102,8 @@ test('sends website', async t => {
     config: {}
   }
   const findOne = stub().returns(Promise.resolve(existingWebsite))
-  const service = websiteAPI({ collection: { findOne } })
-  const url = await listen(http.createServer(service))
+  const service = websiteAPI({ websites: { findOne } })
+  const url = await listen(micro(service))
   const res = await fetch(`${url}?website=${existingWebsite._id}`, {
     method: 'GET'
   })

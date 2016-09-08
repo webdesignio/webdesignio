@@ -5,7 +5,7 @@ const co = require('co')
 const { sendError, createError } = require('micro')
 const { validate } = require('jsonschema')
 
-module.exports = recordQueryAPI
+module.exports = createRecordQueryAPI
 
 const querySchema = {
   type: 'object',
@@ -17,13 +17,8 @@ const querySchema = {
   additionalProperties: false
 }
 
-function recordQueryAPI ({ objects }) {
-  const handlerAsync = co.wrap(handler)
-  return (req, res) =>
-    handlerAsync(req, res)
-      .catch(e => sendError(req, res, e))
-
-  function * handler (req, res) {
+function createRecordQueryAPI ({ objects }) {
+  return co.wrap(function * recordQueryAPI (req, res) {
     const parsedURL = url.parse(req.url, true)
     const { website: websiteID } = parsedURL.query
     let query
@@ -68,5 +63,5 @@ function recordQueryAPI ({ objects }) {
         res.end(']')
       })
     return null
-  }
+  })
 }

@@ -1,7 +1,7 @@
 'use strict'
 
 const url = require('url')
-const { json, sendError, send, createError } = require('micro')
+const { json, send, createError } = require('micro')
 const { validate } = require('jsonschema')
 const co = require('co')
 
@@ -34,13 +34,10 @@ function defaults (record) {
 
 function recordAPI ({ objects, pages }) {
   const objectQueryAPI = createObjectQueryAPI({ objects, pages })
-  return (req, res) =>
-    co.wrap(handler)(req, res)
-      .catch(e => sendError(req, res, e))
 
-  function * handler (req, res) {
+  return co.wrap(function * handler (req, res) {
     const { website } = url.parse(req.url, true).query
-    const match = req.url.match(/^\/(pages|objects)\/([^/?]+)/)
+    const match = req.url.match(/^\/api\/v1\/(pages|objects)\/([^/?]+)/)
     if (!match) {
       if (req.method === 'GET') return objectQueryAPI(req, res)
       throw createError(405)
@@ -73,6 +70,5 @@ function recordAPI ({ objects, pages }) {
     } else {
       throw createError(405)
     }
-    return null
-  }
+  })
 }
