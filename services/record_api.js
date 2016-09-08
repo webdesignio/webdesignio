@@ -37,7 +37,7 @@ function recordAPI ({ objects, pages }) {
 
   return co.wrap(function * handler (req, res) {
     const { website } = url.parse(req.url, true).query
-    const match = req.url.match(/^\/api\/v1\/(pages|objects)\/([^/?]+)/)
+    const match = req.url.match(/^\/(pages|objects)\/([^/?]+)/)
     if (!match) {
       if (req.method === 'GET') return objectQueryAPI(req, res)
       throw createError(405)

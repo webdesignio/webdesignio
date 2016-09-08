@@ -9,7 +9,7 @@ module.exports = createMetaAPI
 function createMetaAPI ({ getGfs }) {
   return co.wrap(function * metaAPI (req, res) {
     const { website: websiteID } = url.parse(req.url, true).query
-    const match = req.url.match(/^\/api\/v1\/meta\/([^/?]+)/)
+    const match = req.url.match(/^\/([^/?]+)/)
     if (!match) throw createError(400)
     const filename = decodeURIComponent(match[1])
     const gfs = getGfs()

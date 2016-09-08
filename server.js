@@ -26,6 +26,8 @@ const createAPI = require('./services/api')
 
 mongoose.Promise = Promise
 mongoose.connect(config.get('mongodb'))
+mongoose.model('objects', {})
+mongoose.model('pages', {})
 
 const micro = fn =>
   (req, res, next) =>

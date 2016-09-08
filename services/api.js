@@ -28,7 +28,7 @@ function createAPI ({
       const match = req.url.match(regex)
       if (match) {
         req.url =
-          (!match[1] || match[1][0] === '?')
+          (!match[1] || match[1][0] !== '/')
             ? '/' + (match[1] || '')
             : match[1]
         return service(req, res)
