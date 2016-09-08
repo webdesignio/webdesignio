@@ -4,11 +4,10 @@ const express = require('express')
 const mongoose = require('mongoose')
 const Grid = require('gridfs-stream')
 const error = require('http-errors')
-const bunyan = require('bunyan')
 const { urlencoded } = require('body-parser')
 
 const fleet = Object.assign(
-  { log: bunyan.createLogger({ name: 'login' }) },
+  {},
   require('./plugins/files')
 )
 

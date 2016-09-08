@@ -7,10 +7,10 @@ if [[ $NODE_ENV != production ]]; then
   echo "    - starting redis ..."
   redis-server 2>&1 >redis.log &
   echo "    - starting worker ..."
-  nodemon -q -w services services/worker.js | bunyan &
+  nodemon -q -w services services/worker.js &
   echo "    - starting engine and watching sources ..."
   echo
-  nodemon -q -w services bin/webdesignio-engine.js -- run | bunyan
+  nodemon -q -w services bin/webdesignio-engine.js -- run
 else
   node bin/webdesignio-engine.js run
 fi

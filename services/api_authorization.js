@@ -1,12 +1,11 @@
 'use strict'
 
-const bunyan = require('bunyan')
 const error = require('http-errors')
 
 const { handleJSONError } = require('../lib/error_handlers')
 
 const fleet = Object.assign(
-  { log: bunyan.createLogger({ name: 'api_authorization' }) },
+  {},
   require('./plugins/websites')
 )
 

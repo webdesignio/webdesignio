@@ -4,14 +4,13 @@ const jwt = require('express-jwt')
 const express = require('express')
 const config = require('config')
 const error = require('http-errors')
-const bunyan = require('bunyan')
 
 const { handleJSONError } = require('../lib/error_handlers')
 
 const auth = module.exports = express()
 
 const fleet = Object.assign(
-  { log: bunyan.createLogger({ name: 'auth' }) },
+  {},
   require('./plugins/users')
 )
 

@@ -13,7 +13,6 @@ const find = require('lodash/fp/find')
 const yauzl = require('yauzl')
 const tmp = require('tmp')
 const reduce = require('@webdesignio/floorman/reducers').default
-const bunyan = require('bunyan')
 const kue = require('kue')
 const config = require('config')
 const throng = require('throng')
@@ -29,7 +28,7 @@ throng(parseInt(concurrency), () => {
   mongoose.connect(config.get('mongodb'))
 
   fleet = Object.assign(
-    { log: bunyan.createLogger({ name: 'worker' }) },
+    {},
     require('./plugins/websites'),
     require('./plugins/components'),
     require('./plugins/files'),
@@ -40,16 +39,16 @@ throng(parseInt(concurrency), () => {
 
   const queue = kue.createQueue({ redis: config.get('redis') })
   queue.process('build_website', ({ data: { id } }, done) => {
-    fleet.log.info('starting build', id)
+    console.log('starting build', id)
     buildWebsite({ id })
       .then(() => done())
       .catch(done)
   })
-  fleet.log.info('worker running')
+  console.log('worker running')
 })
 
 function buildWebsite ({ id: website }) {
-  fleet.log.info('building', website)
+  console.log('building', website)
   return new Promise((resolve, reject) => {
     tmp.dir({ unsafeCleanup: true }, (err, tmpPath, cleanup) => {
       if (err) return reject(err)
@@ -95,7 +94,7 @@ function startBuild ({ website, tmpPath, cleanup }) {
     ])
     .then(([{ website, outputs }]) => {
       if (website.config.driver) {
-        fleet.log.info('sending assets to cdn', website.config.driver)
+        console.log('sending assets to cdn', website.config.driver)
         return Promise.all(
           website.languages.map((language, i) =>
             fleet.runDriver({
@@ -230,7 +229,7 @@ function extractAssets ({ tmpPath, output, website, language }) {
         )
       })
       zipFile.on('end', () => {
-        fleet.log.info('end of archive, waiting for streams to settle')
+        console.log('end of archive, waiting for streams to settle')
         Promise.all(promises).then(() => resolve())
       })
       zipFile.readEntry()
@@ -280,8 +279,8 @@ function buildObject ({ id, website, components, language, tmpPath }) {
 }
 
 function buildRecord ({ filename, record, components, language }) {
-  fleet.log.debug('build record')
-  fleet.log.debug(record.toJSON())
+  console.log('build record')
+  console.log(record.toJSON())
   const gfs = Grid(mongoose.connection.db, mongoose.mongo)
   return Promise.all([
     fleet.getWebsite({ id: record.website }),

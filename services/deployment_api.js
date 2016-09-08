@@ -2,14 +2,13 @@
 
 const Busboy = require('busboy')
 const { Observable } = require('rx')
-const bunyan = require('bunyan')
 const co = require('co')
 const { createError } = require('micro')
 
 module.exports = createDeploymentAPI
 
 const fleet = Object.assign(
-  { log: bunyan.createLogger({ name: 'deploy' }) },
+  {},
   require('./plugins/diff'),
   require('./plugins/patch')
 )
@@ -52,7 +51,7 @@ function createDeploymentAPI ({ getGfs }) {
       })
       busboy.on('file', (fieldname, file, filename) => {
         if (fieldname === 'assets') {
-          fleet.log.info('uploading assets', {
+          console.log('uploading assets', {
             filename: fieldname,
             metadata: { website: req.query.website, type: 'assets' }
           })

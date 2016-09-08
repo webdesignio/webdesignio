@@ -1,11 +1,9 @@
 'use strict'
 
-const { log } = require('util')
 const http = require('http')
 const express = require('express')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
-const through = require('through')
 const kue = require('kue')
 const config = require('config')
 const cors = require('cors')
@@ -60,12 +58,10 @@ const api = micro(createAPI({
 }))
 
 const frontend = express()
-const loggerFormat = frontend.get('env') === 'development'
-  ? 'tiny'
-  : 'short'
-frontend.use(morgan(loggerFormat, {
-  stream: through(data => log(data.slice(0, -1)))
-}))
+const loggerFormat = frontend.get('env') === 'production'
+  ? 'short'
+  : 'dev'
+frontend.use(morgan(loggerFormat))
 frontend.use('/api/v1', cors())
 frontend.use('/api/v1', require('./services/api_auth'))
 frontend.use('/api/v1', apiAuthorization(api))
@@ -85,5 +81,5 @@ if (frontend.get('env') === 'development') {
   kue.app.listen(3001)
 }
 server.listen(process.env.PORT || 3000, () => {
-  log('server listening on port ' + server.address().port)
+  console.log('server listening on port ' + server.address().port)
 })

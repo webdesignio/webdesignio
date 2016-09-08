@@ -3,12 +3,11 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const Grid = require('gridfs-stream')
-const bunyan = require('bunyan')
 const error = require('http-errors')
 
 const editable = module.exports = express()
 const fleet = Object.assign({},
-  { log: bunyan.createLogger({ name: 'editable' }) },
+  {},
   require('./plugins/files')
 )
 
@@ -33,7 +32,7 @@ editable.get('/:type/:id', (req, res, next) => {
 })
 
 function servePage ({ website, id }, res, next) {
-  fleet.log.info('serve page', id)
+  console.log('serve page', id)
   const query = {
     'metadata.website': website,
     filename: `pages/${id}`
@@ -42,7 +41,7 @@ function servePage ({ website, id }, res, next) {
 }
 
 function serveObject ({ website, type }, res, next) {
-  fleet.log.info('serve object', type)
+  console.log('serve object', type)
   const query = {
     'metadata.website': website,
     filename: `objects/${type}`
