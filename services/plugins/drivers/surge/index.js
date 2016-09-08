@@ -13,8 +13,7 @@ function surge (
       config: { surge: { email, token } }
     },
     domain,
-    language,
-    log
+    language
   },
   dir
 ) {

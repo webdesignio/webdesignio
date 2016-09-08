@@ -42,7 +42,10 @@ throng(parseInt(concurrency), () => {
     console.log('starting build', id)
     buildWebsite({ id })
       .then(() => done())
-      .catch(done)
+      .catch(err => {
+        console.log(err.stack)
+        done(err)
+      })
   })
   console.log('worker running')
 })
