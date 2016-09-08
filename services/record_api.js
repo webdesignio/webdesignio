@@ -12,10 +12,12 @@ module.exports = recordAPI
 const pageSchema = {
   type: 'object',
   properties: {
+    _id: { type: 'string', minLength: 1 },
     name: { type: 'string', minLength: 1, required: true },
     website: { type: 'string', minLength: 1, required: true },
     fields: { type: 'object', required: true }
-  }
+  },
+  additionalProperties: false
 }
 
 const objectSchema = {
@@ -25,7 +27,8 @@ const objectSchema = {
     type: { type: 'string', minLength: 1, required: true },
     website: { type: 'string', minLength: 1, required: true },
     fields: { type: 'object', required: true }
-  }
+  },
+  additionalProperties: false
 }
 
 function defaults (record) {

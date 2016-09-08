@@ -20,7 +20,8 @@ const schema = {
     fieldKeys: { type: 'array', items: { type: 'string' } },
     fields: { type: 'object', required: true },
     config: { type: 'object', required: true }
-  }
+  },
+  additionalProperties: false
 }
 
 function defaults (model) {
