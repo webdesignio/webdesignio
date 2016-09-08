@@ -8,7 +8,6 @@ function extractWebsiteID (upstream) {
     if (!host) return null
     if (!host.split('.').length === 3) return null
     const vhost = host.split('.')[0]
-    if (vhost === 'www') return null
     req.headers['x-website'] = vhost
     upstream(req, res, next)
   }
