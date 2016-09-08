@@ -8,7 +8,7 @@ const kue = require('kue')
 const config = require('config')
 const cors = require('cors')
 const Grid = require('gridfs-stream')
-const { send } = require('micro')
+const { send, sendError } = require('micro')
 
 const apiAuthorization = require('./services/api_authorization')
 const extractWebsiteID = require('./services/extract_website')
@@ -31,7 +31,7 @@ const micro = fn =>
   (req, res, next) =>
     fn(req, res)
       .then(v => v != null ? send(res, 200, v) : null)
-      .catch(next)
+      .catch(e => sendError(req, res, e))
 
 // Make sure gfs is lazily created
 const secret = config.get('secret')
