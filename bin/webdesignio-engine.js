@@ -21,7 +21,7 @@ const argv = yargs
   .argv
 
 if (argv._[0] === 'run') {
-  require('../services/frontend')
+  require('../server')
 } else if (argv._[0] === 'worker') {
   require('../services/worker')
 } else if (argv._[0] === 'create-user') {
