@@ -6,7 +6,8 @@
   "scripts": {
     "start": "scripts/start",
     "test": "ava",
-    "worker": "node bin/webdesignio-engine.js worker"
+    "worker": "node bin/webdesignio-engine.js worker",
+    "postpublish": "greenkeeper-postpublish"
   },
   "ava": {
     "files": "services/**/*_test.js"
@@ -55,6 +56,7 @@
   "devDependencies": {
     "ava": "^0.16.0",
     "babel-eslint": "^6.1.2",
+    "greenkeeper-postpublish": "^1.0.1",
     "node-fetch": "^1.6.0",
     "nodemon": "^1.9.2",
     "sinon": "^1.17.5",
