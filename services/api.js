@@ -31,7 +31,7 @@ function createAPI ({
           (!match[1] || match[1][0] !== '/')
             ? '/' + (match[1] || '')
             : match[1]
-        return service(req, res)
+        return yield service(req, res)
       }
     }
     send(res, 200, { title: 'webdesignio API', version: '1' })

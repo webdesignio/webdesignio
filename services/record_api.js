@@ -42,7 +42,7 @@ function recordAPI ({ objects, pages }) {
     const { website } = url.parse(req.url, true).query
     const match = req.url.match(/^\/(pages|objects)\/([^/?]+)/)
     if (!match) {
-      if (req.method === 'GET') return objectQueryAPI(req, res)
+      if (req.method === 'GET') return yield objectQueryAPI(req, res)
       throw createError(405)
     }
     const type = match[1]
