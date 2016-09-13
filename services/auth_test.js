@@ -1,26 +1,29 @@
-import { createServer } from 'http'
 import test from 'ava'
 import fetch from 'node-fetch'
 import listen from 'test-listen'
 import { spy } from 'sinon'
 import { sign } from 'jsonwebtoken'
+import compose from 'lodash/fp/compose'
+import micro from 'micro'
 
-import appAuthorization from './app_authorization'
+import createAuthorization from './auth'
+
+const createSrv = compose(listen, micro, createAuthorization)
 
 test('passes /login', async t => {
-  const app = spy((req, res) => res.end())
-  const url = await listen(createServer(appAuthorization({ app })))
+  const app = spy((req, res) => ({}))
+  const url = await createSrv({ services: { app }, collections: {} })
   const res = await fetch(`${url}/login`)
   t.is(res.status, 200)
   t.truthy(app.calledOnce)
 })
 
 test('rejects without token', async t => {
-  const app = spy((req, res) => res.end())
+  const app = spy((req, res) => ({}))
   const website = {}
   const websites = { findOne () { return website } }
   const secret = 'foobar'
-  const url = await listen(createServer(appAuthorization({ app, secret, websites })))
+  const url = await createSrv({ services: { app }, secret, collections: { websites } })
   const res = await fetch(`${url}`, {
     redirect: 'manual',
     headers: { cookie: '' }
@@ -31,11 +34,11 @@ test('rejects without token', async t => {
 })
 
 test('rejects with invalid token', async t => {
-  const app = spy((req, res) => res.end())
+  const app = spy((req, res) => ({}))
   const website = {}
   const websites = { findOne () { return website } }
   const secret = 'foobar'
-  const url = await listen(createServer(appAuthorization({ app, secret, websites })))
+  const url = await createSrv({ services: { app }, secret, collections: { websites } })
   const res = await fetch(`${url}`, {
     redirect: 'manual',
     headers: { cookie: 'token=123' }
@@ -45,33 +48,8 @@ test('rejects with invalid token', async t => {
   t.falsy(app.calledOnce)
 })
 
-test('sends not-found with valid user and non-existent website', async t => {
-  const app = spy((req, res) => res.end())
-  const website = null
-  const user = { _id: '1', isActive: true }
-  const websites = { findOne () { return website } }
-  const users = { findOne () { return user } }
-  const secret = 'foobar'
-  const token = sign({ user: '1' }, secret)
-  const errorPages = { notFound: 'notfound' }
-  const url = await listen(createServer(appAuthorization({
-    app,
-    secret,
-    users,
-    websites,
-    errorPages
-  })))
-  const res = await fetch(`${url}`, {
-    redirect: 'manual',
-    headers: { cookie: `token=${token}` }
-  })
-  t.is(res.status, 302)
-  t.is(res.headers._headers.location[0], `${url}/${errorPages.notFound}`)
-  t.falsy(app.calledOnce)
-})
-
 test('sends forbidden with valid user and valid website', async t => {
-  const app = spy((req, res) => res.end())
+  const app = spy((req, res) => ({}))
   const website = { owner: '', users: [] }
   const user = { _id: '1', isActive: true }
   const websites = { findOne () { return website } }
@@ -79,16 +57,15 @@ test('sends forbidden with valid user and valid website', async t => {
   const secret = 'foobar'
   const token = sign({ user: '1' }, secret)
   const errorPages = { forbidden: 'forbidden' }
-  const url = await listen(createServer(appAuthorization({
-    app,
+  const url = await createSrv({
     secret,
-    users,
-    websites,
-    errorPages
-  })))
+    errorPages,
+    collections: { users, websites },
+    services: { app }
+  })
   const res = await fetch(`${url}`, {
     redirect: 'manual',
-    headers: { cookie: `token=${token}` }
+    headers: { 'x-jsonwebtoken': token }
   })
   t.is(res.status, 302)
   t.is(res.headers._headers.location[0], `${url}/${errorPages.forbidden}`)
@@ -96,44 +73,42 @@ test('sends forbidden with valid user and valid website', async t => {
 })
 
 test('passes with owner user and valid website', async t => {
-  const app = spy((req, res) => res.end())
+  const app = spy((req, res) => ({}))
   const website = { owner: '1', users: [] }
   const user = { _id: '1', isActive: true }
   const websites = { findOne () { return website } }
   const users = { findOne () { return user } }
   const secret = 'foobar'
   const token = sign({ user: '1' }, secret)
-  const url = await listen(createServer(appAuthorization({
-    app,
+  const url = await createSrv({
     secret,
-    users,
-    websites
-  })))
+    collections: { users, websites },
+    services: { app }
+  })
   const res = await fetch(`${url}`, {
     redirect: 'manual',
-    headers: { cookie: `token=${token}` }
+    headers: { 'x-jsonwebtoken': token }
   })
   t.is(res.status, 200)
   t.truthy(app.calledOnce)
 })
 
 test('passes with website user and valid website', async t => {
-  const app = spy((req, res) => res.end())
+  const app = spy((req, res) => ({}))
   const website = { owner: '', users: ['1'] }
   const user = { _id: '1', isActive: true }
   const websites = { findOne () { return website } }
   const users = { findOne () { return user } }
   const secret = 'foobar'
   const token = sign({ user: '1' }, secret)
-  const url = await listen(createServer(appAuthorization({
-    app,
+  const url = await createSrv({
     secret,
-    users,
-    websites
-  })))
+    collections: { users, websites },
+    services: { app }
+  })
   const res = await fetch(`${url}`, {
     redirect: 'manual',
-    headers: { cookie: `token=${token}` }
+    headers: { 'x-jsonwebtoken': token }
   })
   t.is(res.status, 200)
   t.truthy(app.calledOnce)

@@ -1,5 +1,6 @@
 'use strict'
 
+const util = require('util')
 const { dirname } = require('path')
 const fs = require('fs')
 const vm = require('vm')
@@ -20,6 +21,7 @@ const writeFileAsync = Bluebird.promisify(fs.writeFile)
 const mkdirpAsync = Bluebird.promisify(mkdirp)
 const unlinkAsync = Bluebird.promisify(fs.unlink)
 
+const debuglog = util.debuglog('worker')
 let fleet
 
 const concurrency = process.env.WEB_CONCURRENCY || 1
@@ -39,7 +41,6 @@ throng(parseInt(concurrency), () => {
 
   const queue = kue.createQueue({ redis: config.get('redis') })
   queue.process('build_website', ({ data: { id } }, done) => {
-    console.log('starting build', id)
     buildWebsite({ id })
       .then(() => done())
       .catch(err => {
@@ -59,6 +60,9 @@ function buildWebsite ({ id: website }) {
     })
   })
   .then(startBuild)
+  .then(() => {
+    console.log('successfully published', website)
+  })
 }
 
 function startBuild ({ website, tmpPath, cleanup }) {
@@ -97,7 +101,7 @@ function startBuild ({ website, tmpPath, cleanup }) {
     ])
     .then(([{ website, outputs }]) => {
       if (website.config.driver) {
-        console.log('sending assets to cdn', website.config.driver)
+        debuglog('sending assets to cdn', website.config.driver)
         return Promise.all(
           website.languages.map((language, i) =>
             fleet.runDriver({
@@ -181,8 +185,8 @@ function loadAssets ({ website }) {
   })
   .then(tmpPath =>
     new Promise((resolve, reject) => {
-      console.log('saving assets on harddisk', website, tmpPath)
-      console.log('loading assets', { filename: 'assets', 'metadata.website': website })
+      debuglog('saving assets on harddisk', website, tmpPath)
+      debuglog('loading assets', { filename: 'assets', 'metadata.website': website })
       gfs.files.findOne({ filename: 'assets', 'metadata.website': website })
         .then(file => {
           if (!file) throw new Error('No assets available!')
@@ -197,7 +201,7 @@ function loadAssets ({ website }) {
 }
 
 function extractAssets ({ tmpPath, output, website, language }) {
-  console.log('extracting assets to', output)
+  debuglog('extracting assets to', output)
   return new Promise((resolve, reject) => {
     yauzl.open(tmpPath, { lazyEntries: true }, (err, zipFile) => {
       if (err) return reject(err)
@@ -232,7 +236,7 @@ function extractAssets ({ tmpPath, output, website, language }) {
         )
       })
       zipFile.on('end', () => {
-        console.log('end of archive, waiting for streams to settle')
+        debuglog('end of archive, waiting for streams to settle')
         Promise.all(promises).then(() => resolve())
       })
       zipFile.readEntry()
@@ -282,8 +286,8 @@ function buildObject ({ id, website, components, language, tmpPath }) {
 }
 
 function buildRecord ({ filename, record, components, language }) {
-  console.log('build record')
-  console.log(record.toJSON())
+  debuglog('build record')
+  debuglog(record.toJSON())
   const gfs = Grid(mongoose.connection.db, mongoose.mongo)
   return Promise.all([
     fleet.getWebsite({ id: record.website }),

@@ -20,7 +20,6 @@ function surge (
   const realDomain = domain || `${_id}-${shortid()}-${language}.surge.sh`
   return new Promise((resolve, reject) => {
     const path = process.env.PATH.split(':')[1] + '/surge'
-    console.log(find(dir).slice(0))
     const surge = spawn(path, ['-d', realDomain, '-p', '.'], {
       cwd: dir,
       env: Object.assign({}, process.env, {

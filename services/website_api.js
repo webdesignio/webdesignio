@@ -1,10 +1,13 @@
 'use strict'
 
+const util = require('util')
 const url = require('url')
 const { json, createError } = require('micro')
 const { validate } = require('jsonschema')
 const { send } = require('micro')
 const co = require('co')
+
+const debuglog = util.debuglog('website_api')
 
 module.exports = createWebsiteAPI
 
@@ -47,18 +50,19 @@ function createWebsiteAPI ({ websites }) {
       const body = yield json(req)
       const isNew = !maybeWebsite
       const website =
-        !maybeWebsite
-          ? defaults(Object.assign(
-            { _id: websiteID },
-            body,
-            { owner: req.headers['x-user'] }
-          ))
-          : Object.assign({}, maybeWebsite, body)
+        Object.assign(
+          !maybeWebsite
+            ? defaults(body)
+            : Object.assign({}, maybeWebsite, body),
+          { _id: websiteID, owner: req.headers['x-user'] }
+        )
       if (!validate(website, schema).valid) throw createError(400, 'Invalid json body')
       if (isNew) {
+        debuglog('insert website', website)
         yield websites.insertOne(website)
       } else {
-        yield websites.updateOne({ _id: website._id }, { $set: website })
+        debuglog('update website', util.inspect(website, { colors: true, depth: null }))
+        yield websites.updateOne({ _id: websiteID }, { $set: website })
       }
       send(res, isNew ? 201 : 200, website)
     } else {

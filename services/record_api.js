@@ -1,11 +1,14 @@
 'use strict'
 
+const util = require('util')
 const url = require('url')
 const { json, send, createError } = require('micro')
 const { validate } = require('jsonschema')
 const co = require('co')
 
 const createObjectQueryAPI = require('./object_query_api')
+
+const debuglog = util.debuglog('record_api')
 
 module.exports = recordAPI
 
@@ -65,6 +68,7 @@ function recordAPI ({ objects, pages }) {
       const schema = type === 'pages' ? pageSchema : objectSchema
       const update = defaults(Object.assign({}, body, query))
       if (!validate(update, schema).valid) throw createError(400)
+      debuglog(type, 'update', update)
       delete update._id
       const { result } = yield collection.update(query, update, { upsert: true })
       const { nModified } = result

@@ -84,7 +84,7 @@ test('creates website with default values', async t => {
   }
   t.deepEqual(body, expectedBody)
   t.truthy(updateOne.calledOnce)
-  t.deepEqual(updateOne.args[0][0], { _id: existingWebsite._id })
+  t.deepEqual(updateOne.args[0][0], { _id: 'my-site' })
   t.deepEqual(updateOne.args[0][1], { $set: expectedBody })
 })
 

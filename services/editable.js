@@ -1,64 +1,68 @@
 'use strict'
 
-const express = require('express')
-const mongoose = require('mongoose')
-const Grid = require('gridfs-stream')
-const error = require('http-errors')
+const util = require('util')
+const url = require('url')
+const co = require('co')
+const { createError, sendError } = require('micro')
+const p = require('path-to-regexp')
 
-const editable = module.exports = express()
-const fleet = Object.assign({},
-  {},
-  require('./plugins/files')
-)
+const debuglog = util.debuglog('editable')
 
-editable.get('/', (req, res, next) => {
-  const website = req.headers['x-website']
-  if (!website) return next()
-  servePage({ website, id: 'index' }, res, next)
-})
+module.exports = createEditable
 
-editable.get('/:id', (req, res, next) => {
-  const website = req.headers['x-website']
-  if (!website) return next()
-  const { id } = req.params
-  servePage({ website, id }, res, next)
-})
-
-editable.get('/:type/:id', (req, res, next) => {
-  const website = req.headers['x-website']
-  if (!website) return next()
-  const { type } = req.params
-  serveObject({ website, type }, res, next)
-})
-
-function servePage ({ website, id }, res, next) {
-  console.log('serve page', id)
-  const query = {
-    'metadata.website': website,
-    filename: `pages/${id}`
+function createEditable ({ getGfs, errorPages }) {
+  const regexes = {
+    index: p('/'),
+    page: p('/:id'),
+    object: p('/:type/:id')
   }
-  serveFile({ query }, res, next)
-}
+  return co.wrap(function * editable (req, res) {
+    const { pathname } = url.parse(req.url)
+    const websiteID = req.headers['x-website']
+    if (!websiteID) throw createError(404)
+    let match
+    if ((match = pathname.match(regexes.object))) {
+      return serveObject(req, res, { website: websiteID, type: match[1] })
+    } else if ((match = pathname.match(regexes.page))) {
+      return servePage(req, res, { website: websiteID, id: match[1] })
+    } else if ((match = pathname.match(regexes.index))) {
+      return servePage(req, res, { website: websiteID, id: 'index' })
+    } else {
+      res.writeHead(302, {
+        'Location': errorPages.notFound,
+        'Content-Type': 'text/plain'
+      })
+      res.end('Redirecting ...')
+      return
+    }
+  })
 
-function serveObject ({ website, type }, res, next) {
-  console.log('serve object', type)
-  const query = {
-    'metadata.website': website,
-    filename: `objects/${type}`
+  function servePage (req, res, { website, id }) {
+    const query = { 'metadata.website': website, filename: `pages/${id}` }
+    return serveFile(req, res, { query })
   }
-  serveFile({ query }, res, next)
-}
 
-function serveFile ({ query }, res, next) {
-  const gfs = Grid(mongoose.connection.db, mongoose.mongo)
-  fleet.getFile(query)
-    .then(file => file || Promise.reject(error(404)))
-    .then(({ _id }) => {
-      const readStream = gfs.createReadStream({ _id })
-      res.writeHeader(200, { 'Content-Type': 'text/html' })
-      readStream
-        .on('error', next)
-        .pipe(res)
-    })
-    .catch(next)
+  function serveObject (req, res, { website, type }) {
+    const query = { 'metadata.website': website, filename: `objects/${type}` }
+    return serveFile(req, res, { query })
+  }
+
+  function serveFile (req, res, { query }) {
+    const gfs = getGfs()
+    gfs.files.findOne(query)
+      .then(file => file || Promise.reject(createError(404)))
+      .then(({ _id, length }) => {
+        debuglog('streaming', query, 'with id', _id)
+        const readStream = gfs.createReadStream({ _id })
+        res.writeHeader(200, {
+          'Content-Type': 'text/html',
+          'Content-Length': length
+        })
+        readStream
+          .on('error', e => sendError(req, res, e))
+          .pipe(res)
+      })
+      .catch(e => sendError(req, res, e))
+    return null
+  }
 }

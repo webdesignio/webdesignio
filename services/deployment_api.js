@@ -1,9 +1,13 @@
 'use strict'
 
+const util = require('util')
+const url = require('url')
 const Busboy = require('busboy')
 const { Observable } = require('rx')
 const co = require('co')
 const { createError } = require('micro')
+
+const debuglog = util.debuglog('deployment_api')
 
 module.exports = createDeploymentAPI
 
@@ -16,6 +20,7 @@ const fleet = Object.assign(
 function createDeploymentAPI ({ getGfs }) {
   return co.wrap(function * deploy (req, res) {
     if (req.method !== 'POST') throw createError(405)
+    req.query = url.parse(req.url, true).query
     const incomingFiles = yield parseFiles(req)
     const diff = yield fleet.diff({ incomingFiles, website: req.query.website })
     yield fleet.patch(diff.filter(c => c.type === 'REMOVE'))
@@ -51,7 +56,7 @@ function createDeploymentAPI ({ getGfs }) {
       })
       busboy.on('file', (fieldname, file, filename) => {
         if (fieldname === 'assets') {
-          console.log('uploading assets', {
+          debuglog('uploading assets', {
             filename: fieldname,
             metadata: { website: req.query.website, type: 'assets' }
           })

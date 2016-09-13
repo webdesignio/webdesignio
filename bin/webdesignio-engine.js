@@ -8,8 +8,6 @@ const config = require('config')
 const read = require('read')
 const Bluebird = require('bluebird')
 
-const { createUser } = require('../services/plugins/users')
-
 const readAsync = Bluebird.promisify(read)
 const argv = yargs
   .usage('    $0 <command> [options] [args]')
@@ -25,6 +23,7 @@ if (argv._[0] === 'run') {
 } else if (argv._[0] === 'worker') {
   require('../services/worker')
 } else if (argv._[0] === 'create-user') {
+  const { createUser } = require('../services/plugins/users')
   mongoose.Promise = Promise
   mongoose.connect(config.get('mongodb'))
   if (!argv.email) error(new Error('No E-Mail given'))
