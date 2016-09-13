@@ -72,6 +72,7 @@ const loggerFormat = process.env.NODE_ENV === 'production'
 const logger = Bluebird.promisify(morgan(loggerFormat))
 const cors = Bluebird.promisify(createCORS())
 const server = micro(co.wrap(function * frontend (req, res) {
+  req.originalUrl = req.url
   yield logger(req, res)
   if (req.url.match(/^\/api\//)) yield cors(req, res)
   return yield app(req, res)
