@@ -9,6 +9,7 @@ const morgan = require('morgan')
 const co = require('co')
 const Bluebird = require('bluebird')
 const createCORS = require('cors')
+const AWS = require('aws-sdk')
 
 const createTokenAPI = require('./services/token_api')
 const createDeploymentAPI = require('./services/deployment_api')
@@ -16,6 +17,7 @@ const createWebsiteBuildingAPI = require('./services/website_building_api')
 const createMetaAPI = require('./services/meta_api')
 const createWebsiteAPI = require('./services/website_api')
 const createRecordAPI = require('./services/record_api')
+const createAssetAPI = require('./services/asset_api')
 const createAPI = require('./services/api')
 const createAuthorization = require('./services/auth')
 const createRequestExtractor = require('./services/request_extractor')
@@ -33,7 +35,12 @@ mongoose.model('pages', {})
 // Make sure gfs is lazily created
 const secret = config.get('secret')
 const errorPages = config.get('errorPages')
+const s3 = new AWS.S3({
+  signatureVersion: 'v4',
+  params: { Bucket: process.env.AWS_S3_BUCKET }
+})
 const { users, websites, pages, objects } = mongoose.connection.collections
+const collections = { users, websites, pages, objects }
 let gfs = null
 const getGfs = () => {
   if (gfs) return gfs
@@ -55,7 +62,8 @@ const app = createRequestExtractor({
               websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
               metaAPI: createMetaAPI({ getGfs }),
               websiteAPI: createWebsiteAPI({ websites }),
-              recordAPI: createRecordAPI({ pages, objects })
+              recordAPI: createRecordAPI({ pages, objects }),
+              assetAPI: createAssetAPI({ s3, collections })
             }),
             login: createLogin({ getGfs, errorPages }),
             editable: createEditable({ getGfs, errorPages })

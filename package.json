@@ -4,7 +4,7 @@
   "description": "The cloud engine for webdesignio.",
   "main": "index.js",
   "scripts": {
-    "start": "scripts/start",
+    "start": "node scripts/start",
     "test": "ava",
     "worker": "node bin/webdesignio-engine.js worker",
     "postpublish": "greenkeeper-postpublish"
@@ -22,6 +22,7 @@
   "license": "ISC",
   "dependencies": {
     "@webdesignio/floorman": "^1.0.1",
+    "aws-sdk": "^2.6.3",
     "bcrypt": "^0.8.7",
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",
@@ -47,6 +48,7 @@
     "rx": "^4.1.0",
     "shelljs": "^0.7.4",
     "shortid": "^2.2.6",
+    "stream-meter": "^1.0.4",
     "throng": "^4.0.0",
     "tmp": "0.0.28",
     "yargs": "^5.0.0",
@@ -55,9 +57,10 @@
   "devDependencies": {
     "ava": "^0.16.0",
     "babel-eslint": "^6.1.2",
+    "dotenv": "^2.0.0",
     "greenkeeper-postpublish": "^1.0.1",
+    "node-dev": "^3.1.3",
     "node-fetch": "^1.6.1",
-    "nodemon": "^1.10.2",
     "sinon": "^1.17.5",
     "standard": "^8.0.0",
     "test-listen": "^1.0.0"

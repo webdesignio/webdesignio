@@ -3,23 +3,22 @@
 const util = require('util')
 const { dirname } = require('path')
 const fs = require('fs')
-const vm = require('vm')
 const mongoose = require('mongoose')
 const Grid = require('gridfs-stream')
-const { createStore } = require('redux')
-const cheerio = require('cheerio')
 const Bluebird = require('bluebird')
 const mkdirp = require('mkdirp')
 const find = require('lodash/fp/find')
-const yauzl = require('yauzl')
 const tmp = require('tmp')
-const reduce = require('@webdesignio/floorman/reducers').default
 const kue = require('kue')
 const config = require('config')
 const throng = require('throng')
+const AWS = require('aws-sdk')
 const writeFileAsync = Bluebird.promisify(fs.writeFile)
 const mkdirpAsync = Bluebird.promisify(mkdirp)
 const unlinkAsync = Bluebird.promisify(fs.unlink)
+
+const { buildContext } = require('./build')
+const { loadAssets, extractAssets } = require('./assets')
 
 const debuglog = util.debuglog('worker')
 let fleet
@@ -31,17 +30,31 @@ throng(parseInt(concurrency), () => {
 
   fleet = Object.assign(
     {},
-    require('./plugins/websites'),
-    require('./plugins/components'),
-    require('./plugins/files'),
-    require('./plugins/objects'),
-    require('./plugins/pages'),
-    require('./plugins/drivers')
+    require('../plugins/websites'),
+    require('../plugins/components'),
+    require('../plugins/files'),
+    require('../plugins/objects'),
+    require('../plugins/pages'),
+    require('../plugins/drivers')
   )
 
+  const assetDriver = process.env.NODE_ENV === 'production'
+    ? createAWSDriver({
+      s3: new AWS.S3({
+        signatureVersion: 'v4',
+        params: { Bucket: process.env.AWS_S3_BUCKET }
+      })
+    })
+    : createFSDriver({ uploadDir: 'assets' })
+  debuglog(
+    'using',
+    process.env.NODE_ENV === 'production'
+      ? 'aws driver'
+      : 'fs driver'
+  )
   const queue = kue.createQueue({ redis: config.get('redis') })
   queue.process('build_website', ({ data: { id } }, done) => {
-    buildWebsite({ id })
+    buildWebsite({ assetDriver, id })
       .then(() => done())
       .catch(err => {
         console.log(err.stack)
@@ -51,12 +64,12 @@ throng(parseInt(concurrency), () => {
   console.log('worker running')
 })
 
-function buildWebsite ({ id: website }) {
+function buildWebsite ({ assetDriver, id: website }) {
   console.log('building', website)
   return new Promise((resolve, reject) => {
     tmp.dir({ unsafeCleanup: true }, (err, tmpPath, cleanup) => {
       if (err) return reject(err)
-      resolve({ tmpPath, cleanup, website })
+      resolve({ tmpPath, cleanup, website, assetDriver })
     })
   })
   .then(startBuild)
@@ -65,7 +78,7 @@ function buildWebsite ({ id: website }) {
   })
 }
 
-function startBuild ({ website, tmpPath, cleanup }) {
+function startBuild ({ assetDriver, website, tmpPath, cleanup }) {
   return Promise.all([
     fleet.getWebsite({ id: website }),
     fleet.getComponents({
@@ -81,7 +94,7 @@ function startBuild ({ website, tmpPath, cleanup }) {
           `${tmpPath}/${language}`
         )
       }),
-      loadAssets({ website: website._id })
+      loadAssets({ driver: assetDriver, website: website._id })
         .then(assetTmpPath =>
           Promise.all(
             website.languages
@@ -175,75 +188,6 @@ function buildObjects ({ website, components, tmpPath }) {
     )
 }
 
-function loadAssets ({ website }) {
-  const gfs = Grid(mongoose.connection.db, mongoose.mongo)
-  return new Promise((resolve, reject) => {
-    tmp.file((err, path) => {
-      if (err) return reject(err)
-      resolve(path)
-    })
-  })
-  .then(tmpPath =>
-    new Promise((resolve, reject) => {
-      debuglog('saving assets on harddisk', website, tmpPath)
-      debuglog('loading assets', { filename: 'assets', 'metadata.website': website })
-      gfs.files.findOne({ filename: 'assets', 'metadata.website': website })
-        .then(file => {
-          if (!file) throw new Error('No assets available!')
-          gfs.createReadStream({ _id: file._id })
-            .on('error', reject)
-            .pipe(fs.createWriteStream(tmpPath))
-            .on('error', reject)
-            .on('close', () => resolve(tmpPath))
-        })
-    })
-  )
-}
-
-function extractAssets ({ tmpPath, output, website, language }) {
-  debuglog('extracting assets to', output)
-  return new Promise((resolve, reject) => {
-    yauzl.open(tmpPath, { lazyEntries: true }, (err, zipFile) => {
-      if (err) return reject(err)
-      resolve(zipFile)
-    })
-  })
-  .then(zipFile =>
-    new Promise((resolve, reject) => {
-      const promises = []
-      zipFile.on('entry', entry => {
-        const path = `${output}/${language}/${entry.fileName}`
-        promises.push(
-          mkdirpAsync(dirname(path))
-            .then(() =>
-              new Promise((resolve, reject) => {
-                zipFile.openReadStream(entry, (err, stream) => {
-                  if (err) return reject(err)
-                  resolve(stream)
-                })
-              })
-            )
-            .then(stream =>
-              new Promise((resolve, reject) => {
-                stream
-                  .on('error', reject)
-                  .pipe(fs.createWriteStream(path))
-                  .on('error', reject)
-                  .on('close', resolve)
-              })
-            )
-            .then(() => zipFile.readEntry())
-        )
-      })
-      zipFile.on('end', () => {
-        debuglog('end of archive, waiting for streams to settle')
-        Promise.all(promises).then(() => resolve())
-      })
-      zipFile.readEntry()
-    })
-  )
-}
-
 function buildPage ({ name, website, components, language, tmpPath }) {
   return fleet.getPage({ name, website })
     .then(record =>
@@ -320,49 +264,16 @@ function buildRecord ({ filename, record, components, language }) {
   )
 }
 
-function buildContext ({ components, record, website, meta, language, input }) {
-  const $ = cheerio.load(input)
-  $('[data-webdesignio-remove]').remove()
-  $('[data-component]').each(function () {
-    const componentName = $(this).attr('data-component')
-    const component = components[componentName]
-    if (!component) return
-    const props = JSON.parse(($(this).attr('data-props') || '{}'))
-    $(this).attr('data-component', null)
-    $(this).attr('data-props', null)
-    $(this).html(renderComponent({ component, props }))
-  })
-  return $.html()
-
-  function renderComponent ({ component, props, stream }) {
-    const m = { exports: {} }
-    const state = {
-      locals: Object.assign(
-        { noLangFields: [] },
-        meta, { fields: record.fields }
-      ),
-      globals: { noLangFields: website.noLangFields, fields: website.fields },
-      defaultLanguage: website.defaultLanguage,
-      languages: website.languages,
-      currentLanguage: language,
-      isEditable: false
-    }
-    const store = createStore(reduce, state)
-    const context = vm.createContext({
-      module: m,
-      exports: m.exports,
-      __PROPS__: Object.assign({}, props, { store })
-    })
-    vm.runInContext(
-      `${component}\n__OUT__ = module.exports(__PROPS__)`,
-      context,
-      { timeout: 1000 }
-    )
-    return context.__OUT__
-  }
-}
-
 function writeOutput (path, output) {
   return mkdirpAsync(dirname(path))
     .then(() => writeFileAsync(path, output))
+}
+
+function createFSDriver ({ uploadDir }) {
+  return ({ websiteID }) => fs.createReadStream(`${uploadDir}/${websiteID}`)
+}
+
+function createAWSDriver ({ s3 }) {
+  return ({ websiteID }) =>
+    s3.getObject({ Key: `assets/${websiteID}` }).createReadStream()
 }
