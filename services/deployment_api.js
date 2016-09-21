@@ -20,6 +20,8 @@ const fleet = Object.assign(
 function createDeploymentAPI ({ getGfs }) {
   return co.wrap(function * deploy (req, res) {
     if (req.method !== 'POST') throw createError(405)
+    if (!req.headers['x-website']) throw createError(400)
+    if (req.headers['x-website-isnew']) throw createError(404)
     req.query = url.parse(req.url, true).query
     const incomingFiles = yield parseFiles(req)
     const diff = yield fleet.diff({ incomingFiles, website: req.query.website })

@@ -38,6 +38,7 @@ function createAuthorization ({
     req.headers['x-user'] = user._id
     if (!website) {
       debuglog('proxy to upstream (with new website)')
+      req.headers['x-website-isnew'] = '1'
       return yield upstream(req, res)
     }
     if (

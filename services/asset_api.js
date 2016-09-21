@@ -22,6 +22,7 @@ function createAssetAPI ({ s3 }) {
   )
   return co.wrap(function * assetAPI (req, res) {
     if (!req.headers['x-website']) throw createError(400)
+    if (req.headers['x-website-isnew']) throw createError(404)
     if (req.method === 'POST') {
       const { Bytes: bytes } = yield uploadFile(req, driver)
       send(res, 200, { bytes })
