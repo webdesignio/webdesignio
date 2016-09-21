@@ -58,3 +58,21 @@ test('sets unlimited limits', async t => {
   t.is(req.headers['x-plan-max-number-of-users'], 'Infinity')
   t.is(req.headers['x-plan-max-number-of-websites'], 'Infinity')
 })
+
+test('skips without user', async t => {
+  const users = { findOne: spy(() => Promise.resolve(null)) }
+  const websites = { findOne: spy(() => Promise.resolve(null)) }
+  const upstream = spy(() => Promise.resolve(''))
+  const planInspector = createPlanInspector({
+    collections: { websites, users },
+    services: { upstream }
+  })
+  const url = await listen(micro(planInspector))
+  const res = await fetch(`${url}/test`, {
+    headers: {}
+  })
+  t.is(res.status, 200)
+  t.truthy(upstream.calledOnce)
+  t.falsy(users.findOne.calledOnce)
+  t.falsy(websites.findOne.calledOnce)
+})

@@ -9,6 +9,7 @@ function createPlanInspector ({
   services: { upstream }
 }) {
   return co.wrap(function * planInspector (req, res) {
+    if (!req.headers['x-user']) return yield upstream(req, res)
     const user = yield users.findOne({ _id: req.headers['x-user'] })
     const website = req.headers['x-website']
       ? yield websites.findOne({ _id: req.headers['x-website'] })
