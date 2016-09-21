@@ -10,10 +10,10 @@ if (process.env.NODE_ENV !== 'production') {
   console.log('    - starting redis ...')
   spawn('redis-server', [], { stdio: 'inherit' })
   console.log('    - starting worker ...')
-  spawn('node-dev', ['--', '-r', 'dotenv/config', 'services/worker'], { stdio: 'inherit' })
+  spawn('nodemon', ['-w', 'services', '--', '-r', 'dotenv/config', 'services/worker'], { stdio: 'inherit' })
   console.log('    - starting engine and watching sources ...')
   console.log()
-  spawn('node-dev', ['--', '-r', 'dotenv/config', 'server'], { stdio: 'inherit' })
+  spawn('nodemon', ['-w', 'server.js', '-w', 'services', '--', '-r', 'dotenv/config', 'server'], { stdio: 'inherit' })
 } else {
   require('../server')
 }
