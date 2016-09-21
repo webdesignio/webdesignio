@@ -15,6 +15,7 @@ const createTokenAPI = require('./services/token_api')
 const createDeploymentAPI = require('./services/deployment_api')
 const createWebsiteBuildingAPI = require('./services/website_building_api')
 const createMetaAPI = require('./services/meta_api')
+const createWebsiteUpsertionAPI = require('./services/website_upsertion_api')
 const createWebsiteAPI = require('./services/website_api')
 const createRecordAPI = require('./services/record_api')
 const createAssetAPI = require('./services/asset_api')
@@ -24,6 +25,7 @@ const createRequestExtractor = require('./services/request_extractor')
 const createLogin = require('./services/login')
 const createEditable = require('./services/editable')
 const createApp = require('./services/app')
+const createPlanInspector = require('./services/plan_inspector')
 
 mongoose.Promise = Promise
 mongoose.connect(config.get('mongodb'))
@@ -54,19 +56,29 @@ const app = createRequestExtractor({
       errorPages,
       collections: { users, websites },
       services: {
-        app: createApp({
+        upstream: createPlanInspector({
+          collections,
           services: {
-            api: createAPI({
-              tokenAPI: createTokenAPI({ secret, users }),
-              deploymentAPI: createDeploymentAPI({ getGfs }),
-              websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
-              metaAPI: createMetaAPI({ getGfs }),
-              websiteAPI: createWebsiteAPI({ websites }),
-              recordAPI: createRecordAPI({ pages, objects }),
-              assetAPI: createAssetAPI({ s3, collections })
-            }),
-            login: createLogin({ getGfs, errorPages }),
-            editable: createEditable({ getGfs, errorPages })
+            upstream: createApp({
+              services: {
+                api: createAPI({
+                  tokenAPI: createTokenAPI({ secret, users }),
+                  deploymentAPI: createDeploymentAPI({ getGfs }),
+                  websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
+                  metaAPI: createMetaAPI({ getGfs }),
+                  websiteAPI: createWebsiteAPI({
+                    collections,
+                    services: {
+                      websiteUpsertionAPI: createWebsiteUpsertionAPI({ collections })
+                    }
+                  }),
+                  recordAPI: createRecordAPI({ pages, objects }),
+                  assetAPI: createAssetAPI({ s3, collections })
+                }),
+                login: createLogin({ getGfs, errorPages }),
+                editable: createEditable({ getGfs, errorPages })
+              }
+            })
           }
         })
       }

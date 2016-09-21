@@ -15,11 +15,11 @@ function createAuthorization ({
   secret,
   errorPages,
   collections: { users, websites },
-  services: { app }
+  services: { upstream }
 }) {
   return co.wrap(function * authorization (req, res) {
     if (req.url === '/login' || req.url === '/api/v1/tokens') {
-      return yield app(req, res)
+      return yield upstream(req, res)
     }
     const redirect = !req.url.match(/^\/api\//)
     const websiteID = req.headers['x-website']
@@ -37,15 +37,15 @@ function createAuthorization ({
     if (!user) return unauthorized(redirect, res)
     req.headers['x-user'] = user._id
     if (!website) {
-      debuglog('proxy to app (with new website)')
-      return yield app(req, res)
+      debuglog('proxy to upstream (with new website)')
+      return yield upstream(req, res)
     }
     if (
       website.owner !== user._id &&
       website.users.indexOf(user._id) === -1
     ) return forbidden(redirect, res)
-    debuglog('proxy to app')
-    return yield app(req, res)
+    debuglog('proxy to upstream')
+    return yield upstream(req, res)
   })
 
   function forbidden (redirect, res) {
