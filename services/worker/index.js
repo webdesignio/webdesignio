@@ -133,7 +133,7 @@ function startBuild ({ assetDriver, website, tmpPath, cleanup }) {
 
 function buildPages ({ website, components, tmpPath }) {
   return Promise.all([
-    fleet.getPages({ website: website._id, $select: '_id' }),
+    fleet.getPages({ website: website._id }),
     fleet.getFiles({
       'metadata.website': website._id,
       'metadata.type': 'pages'
