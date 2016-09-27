@@ -43,7 +43,7 @@ function buildContext ({ components, record, website, meta, language, input }) {
     vm.runInContext(
       `${component}\n__OUT__ = module.exports(__PROPS__)`,
       context,
-      { timeout: 1000 }
+      { timeout: 10000 }
     )
     return context.__OUT__
   }
