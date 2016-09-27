@@ -46,3 +46,16 @@ test('sends 401 due to invalid password', async t => {
   })
   t.is(res.status, 401)
 })
+
+test('sends 404 due to unknown user', async t => {
+  const user = null
+  const users = { findOne: spy(() => Promise.resolve(user)) }
+  const tokenAPI = createTokenAPI({ users })
+  const url = await listen(micro(tokenAPI))
+  const res = await fetch(`${url}/api/v1/tokens`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'unknown@test.de', password: 'pwd!' })
+  })
+  t.is(res.status, 404)
+})

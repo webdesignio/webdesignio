@@ -26,6 +26,8 @@ const createLogin = require('./services/login')
 const createEditable = require('./services/editable')
 const createApp = require('./services/app')
 const createPlanInspector = require('./services/plan_inspector')
+const createUserUpsertionAPI = require('./services/user_upsertion_api')
+const createUserAPI = require('./services/user_api')
 
 mongoose.Promise = Promise
 mongoose.connect(config.get('mongodb'))
@@ -73,7 +75,12 @@ const app = createRequestExtractor({
                     }
                   }),
                   recordAPI: createRecordAPI({ pages, objects }),
-                  assetAPI: createAssetAPI({ s3, collections })
+                  assetAPI: createAssetAPI({ s3, collections }),
+                  userAPI: createUserAPI({
+                    services: {
+                      userUpsertionAPI: createUserUpsertionAPI({ collections })
+                    }
+                  })
                 }),
                 login: createLogin({ getGfs, errorPages }),
                 editable: createEditable({ getGfs, errorPages })

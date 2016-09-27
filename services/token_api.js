@@ -16,7 +16,7 @@ function createTokenAPI ({ users, secret }) {
     if (req.method !== 'POST') throw createError(405)
     const { email, password } = yield json(req)
     const user = yield users.findOne({ email })
-    if (!user) throw createError(401, 'Invalid email and/or password')
+    if (!user) throw createError(404, 'Unknown user')
     const valid = yield compareAsync(password, user.hash)
     if (!valid) throw createError(401, 'Invalid email and/or password')
     const payload = { user: user._id, tokenSecret: user.tokenSecret }

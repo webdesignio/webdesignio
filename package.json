@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node scripts/start",
+    "mongodb:create_indexes": "node scripts/mongodb_create_indexes",
     "test": "ava",
     "worker": "node bin/webdesignio-engine.js worker",
     "postpublish": "greenkeeper-postpublish"

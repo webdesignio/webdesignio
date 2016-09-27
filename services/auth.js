@@ -18,7 +18,11 @@ function createAuthorization ({
   services: { upstream }
 }) {
   return co.wrap(function * authorization (req, res) {
-    if (req.url === '/login' || req.url === '/api/v1/tokens') {
+    if (
+      req.url === '/login' ||
+      req.url === '/api/v1/tokens' ||
+      (req.url.match(/^\/api\/v1\/users/) && req.method === 'POST')
+    ) {
       return yield upstream(req, res)
     }
     const redirect = !req.url.match(/^\/api\//)

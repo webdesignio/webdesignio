@@ -12,7 +12,8 @@ function createAPI ({
   metaAPI,
   websiteAPI,
   recordAPI,
-  assetAPI
+  assetAPI,
+  userAPI
 }) {
   const u = p => new RegExp('^' + p + '(.*)$')
   const services = [
@@ -22,6 +23,7 @@ function createAPI ({
     [u('/meta'), metaAPI],
     [u('/websites'), websiteAPI],
     [u('/assets'), assetAPI],
+    [u('/users'), userAPI],
     [u('/'), recordAPI]
   ]
 
