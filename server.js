@@ -11,6 +11,7 @@ const Bluebird = require('bluebird')
 const createCORS = require('cors')
 const AWS = require('aws-sdk')
 
+const createURLNormalization = require('./services/url_normalization')
 const createTokenAPI = require('./services/token_api')
 const createDeploymentAPI = require('./services/deployment_api')
 const createWebsiteBuildingAPI = require('./services/website_building_api')
@@ -51,39 +52,43 @@ const getGfs = () => {
   return (gfs = Grid(mongoose.connection.db, mongoose.mongo))
 }
 const queue = kue.createQueue({ redis: config.get('redis') })
-const app = createRequestExtractor({
+const app = createURLNormalization({
   services: {
-    upstream: createAuthorization({
-      secret,
-      errorPages,
-      collections: { users, websites },
+    upstream: createRequestExtractor({
       services: {
-        upstream: createPlanInspector({
-          collections,
+        upstream: createAuthorization({
+          secret,
+          errorPages,
+          collections: { users, websites },
           services: {
-            upstream: createApp({
+            upstream: createPlanInspector({
+              collections,
               services: {
-                api: createAPI({
-                  tokenAPI: createTokenAPI({ secret, users }),
-                  deploymentAPI: createDeploymentAPI({ getGfs }),
-                  websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
-                  metaAPI: createMetaAPI({ getGfs }),
-                  websiteAPI: createWebsiteAPI({
-                    collections,
-                    services: {
-                      websiteUpsertionAPI: createWebsiteUpsertionAPI({ collections })
-                    }
-                  }),
-                  recordAPI: createRecordAPI({ pages, objects }),
-                  assetAPI: createAssetAPI({ s3, collections }),
-                  userAPI: createUserAPI({
-                    services: {
-                      userUpsertionAPI: createUserUpsertionAPI({ collections })
-                    }
-                  })
-                }),
-                login: createLogin({ getGfs, errorPages }),
-                editable: createEditable({ getGfs, errorPages })
+                upstream: createApp({
+                  services: {
+                    api: createAPI({
+                      tokenAPI: createTokenAPI({ secret, users }),
+                      deploymentAPI: createDeploymentAPI({ getGfs }),
+                      websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
+                      metaAPI: createMetaAPI({ getGfs }),
+                      websiteAPI: createWebsiteAPI({
+                        collections,
+                        services: {
+                          websiteUpsertionAPI: createWebsiteUpsertionAPI({ collections })
+                        }
+                      }),
+                      recordAPI: createRecordAPI({ pages, objects }),
+                      assetAPI: createAssetAPI({ s3, collections }),
+                      userAPI: createUserAPI({
+                        services: {
+                          userUpsertionAPI: createUserUpsertionAPI({ collections })
+                        }
+                      })
+                    }),
+                    login: createLogin({ getGfs, errorPages }),
+                    editable: createEditable({ getGfs, errorPages })
+                  }
+                })
               }
             })
           }
