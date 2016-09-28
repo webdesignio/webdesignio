@@ -18,6 +18,11 @@ function createAuthorization ({
   services: { upstream }
 }) {
   return co.wrap(function * authorization (req, res) {
+    if (req.headers['x-forwarded-proto'] === 'http') {
+      res.writeHead(302, { 'Location': `https://${req.headers['host']}` })
+      res.end('Redirecting ...')
+      return null
+    }
     if (
       req.url === '/login' ||
       req.url === '/api/v1/tokens' ||
