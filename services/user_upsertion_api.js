@@ -5,6 +5,7 @@ const co = require('co')
 const { genSalt, hash } = require('bcrypt')
 const Bluebird = require('bluebird')
 const { validate } = require('jsonschema')
+const shortid = require('shortid')
 
 const genSaltAsync = Bluebird.promisify(genSalt)
 const hashAsync = Bluebird.promisify(hash)
@@ -32,7 +33,7 @@ function createUserUpsertionAPI ({
       const salt = yield genSaltAsync(10)
       const hash = yield hashAsync(password, salt)
       try {
-        yield users.insert({ email, isActive, hash })
+        yield users.insert({ _id: shortid(), email, isActive, hash })
       } catch (e) {
         if (e.name === 'MongoError' && e.code === 11000) {
           throw createError(409, 'User already exists')
