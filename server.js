@@ -29,6 +29,7 @@ const createApp = require('./services/app')
 const createPlanInspector = require('./services/plan_inspector')
 const createUserUpsertionAPI = require('./services/user_upsertion_api')
 const createUserAPI = require('./services/user_api')
+const createSlackNotifier = require('./services/slack_notifier')
 
 mongoose.Promise = Promise
 mongoose.connect(config.get('mongodb'))
@@ -52,6 +53,7 @@ const getGfs = () => {
   return (gfs = Grid(mongoose.connection.db, mongoose.mongo))
 }
 const queue = kue.createQueue({ redis: config.get('redis') })
+const slackNotifier = createSlackNotifier({ url: process.env.SLACK_MESSAGE_URL })
 const app = createURLNormalization({
   services: {
     upstream: createRequestExtractor({
@@ -81,7 +83,10 @@ const app = createURLNormalization({
                       assetAPI: createAssetAPI({ s3, collections }),
                       userAPI: createUserAPI({
                         services: {
-                          userUpsertionAPI: createUserUpsertionAPI({ collections })
+                          userUpsertionAPI: createUserUpsertionAPI({
+                            collections,
+                            services: { slackNotifier }
+                          })
                         }
                       })
                     }),

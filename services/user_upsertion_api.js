@@ -19,7 +19,10 @@ const userSchema = {
   }
 }
 
-function createUserUpsertionAPI ({ collections: { users } }) {
+function createUserUpsertionAPI ({
+  collections: { users },
+  services: { slackNotifier }
+}) {
   return co.wrap(function * userUpsertionAPI (req, res) {
     if (req.method === 'POST') {
       const body = yield json(req)
@@ -37,6 +40,11 @@ function createUserUpsertionAPI ({ collections: { users } }) {
         throw e
       }
       send(res, 201, { email, isActive })
+      slackNotifier({
+        icon_emoji: ':penguin:',
+        username: 'web',
+        text: `:bust_in_silhouette: New user ${email}!`
+      })
       return null
     } else {
       throw createError(405)
