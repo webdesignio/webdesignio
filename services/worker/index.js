@@ -19,6 +19,7 @@ const unlinkAsync = Bluebird.promisify(fs.unlink)
 
 const { buildContext } = require('./build')
 const { loadAssets, extractAssets } = require('./assets')
+const createSlackNotifier = require('../slack_notifier')
 
 const debuglog = util.debuglog('worker')
 let fleet
@@ -38,6 +39,7 @@ throng(parseInt(concurrency), () => {
     require('../plugins/drivers')
   )
 
+  const slackNotifier = createSlackNotifier({ url: process.env.SLACK_MESSAGE_URL })
   const assetDriver = process.env.NODE_ENV === 'production'
     ? createAWSDriver({
       s3: new AWS.S3({
@@ -53,11 +55,28 @@ throng(parseInt(concurrency), () => {
       : 'fs driver'
   )
   const queue = kue.createQueue({ redis: config.get('redis') })
-  queue.process('build_website', ({ data: { id } }, done) => {
+  queue.process('build_website', ({ id: jobID, data: { id } }, done) => {
+    slackNotifier({
+      username: 'builder',
+      icon_emoji: ':ant:',
+      text: `[website ${id}]: :rocket: Starting build #${jobID}`
+    })
     buildWebsite({ assetDriver, id })
-      .then(() => done())
+      .then(() => {
+        slackNotifier({
+          username: 'builder',
+          icon_emoji: ':ant:',
+          text: `[website ${id}]: :tada: Build #${jobID} finished successfully`
+        })
+        done()
+      })
       .catch(err => {
         console.log(err.stack)
+        slackNotifier({
+          username: 'builder',
+          icon_emoji: ':ant:',
+          text: `[website ${id}]: :boom: Build #${jobID} failed!`
+        })
         done(err)
       })
   })
