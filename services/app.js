@@ -1,26 +1,26 @@
 'use strict'
 
-const util = require('util')
 const co = require('co')
-
-const debuglog = util.debuglog('app')
+const { createError } = require('micro')
+const p = require('path-to-regexp')
+const createRouter = require('../lib/router')
 
 module.exports = createApp
 
-function createApp ({ services: { api, login, editable } }) {
-  const apiRegExp = /^\/api\/v1/
+function createApp ({ services: { api, apiV2, login, editable } }) {
+  const router = createRouter([
+    [p('/api/v1', { end: false }), api],
+    [p('/api/v2', { end: false }), apiV2],
+    [p('/login'), login],
+    [p('/', { end: false }), editable]
+  ])
 
   return co.wrap(function * app (req, res) {
-    if (req.url.match(apiRegExp)) {
-      req.url = req.url.replace(apiRegExp, '')
-      debuglog('proxy to api ' + req.url)
-      return yield api(req, res)
-    } else if (req.url === '/login') {
-      debuglog('proxy to login')
-      return yield login(req, res)
-    } else {
-      debuglog('proxy to editable')
-      return yield editable(req, res)
+    const r = router.match(req.url)
+    if (r) {
+      req.url = r.url
+      return yield r.service(req, res)
     }
+    throw createError(404, 'Resource not found')
   })
 }

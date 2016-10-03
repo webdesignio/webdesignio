@@ -7,11 +7,15 @@
     "start": "node scripts/start",
     "mongodb:create_indexes": "node scripts/mongodb_create_indexes",
     "test": "ava",
+    "postpublish": "greenkeeper-postpublish",
     "worker": "node bin/webdesignio-engine.js worker",
-    "postpublish": "greenkeeper-postpublish"
+    "services:create": "node scripts/create_service"
   },
   "ava": {
-    "files": "services/**/*_test.js"
+    "files": [
+      "services/**/*_test.js",
+      "lib/**/*_test.js"
+    ]
   },
   "standard": {
     "parser": "babel-eslint"

@@ -29,6 +29,10 @@ const createApp = require('./services/app')
 const createPlanInspector = require('./services/plan_inspector')
 const createUserUpsertionAPI = require('./services/user_upsertion_api')
 const createUserAPI = require('./services/user_api')
+const createAPIV2 = require('./services/api_v2')
+const createWebsiteAPIV2 = require('./services/website_api_v2')
+const createServiceAPI = require('./services/service_api')
+const createVoucherAPI = require('./services/voucher_api')
 const createSlackNotifier = require('./services/slack_notifier')
 
 mongoose.Promise = Promise
@@ -37,6 +41,7 @@ mongoose.model('users', {})
 mongoose.model('websites', {})
 mongoose.model('objects', {})
 mongoose.model('pages', {})
+mongoose.model('services', {})
 
 // Make sure gfs is lazily created
 const secret = config.get('secret')
@@ -45,8 +50,8 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
   params: { Bucket: process.env.AWS_S3_BUCKET }
 })
-const { users, websites, pages, objects } = mongoose.connection.collections
-const collections = { users, websites, pages, objects }
+const { users, websites, pages, objects, services } = mongoose.connection.collections
+const collections = { users, websites, pages, objects, services }
 let gfs = null
 const getGfs = () => {
   if (gfs) return gfs
@@ -89,6 +94,20 @@ const app = createURLNormalization({
                           })
                         }
                       })
+                    }),
+                    apiV2: createAPIV2({
+                      services: {
+                        websiteAPI: createWebsiteAPIV2({
+                          services: {
+                            serviceAPI: createServiceAPI({
+                              collections,
+                              services: {
+                                voucherAPI: createVoucherAPI({ collections })
+                              }
+                            })
+                          }
+                        })
+                      }
                     }),
                     login: createLogin({ getGfs, errorPages }),
                     editable: createEditable({ getGfs, errorPages })
