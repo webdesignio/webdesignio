@@ -7,9 +7,10 @@ const createRouter = require('../lib/router')
 
 module.exports = createWebsiteAPI
 
-function createWebsiteAPI ({ services: { serviceAPI } }) {
+function createWebsiteAPI ({ services: { websiteQueryAPI, serviceAPI } }) {
   const router = createRouter([
-    [p('/:website/services', { end: false }), serviceAPI]
+    [p('/:website/services', { end: false }), serviceAPI],
+    [p('/:website'), websiteQueryAPI]
   ])
 
   return co.wrap(function * websiteAPI (req, res) {

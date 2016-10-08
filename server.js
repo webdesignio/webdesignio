@@ -31,6 +31,7 @@ const createUserUpsertionAPI = require('./services/user_upsertion_api')
 const createUserAPI = require('./services/user_api')
 const createAPIV2 = require('./services/api_v2')
 const createWebsiteAPIV2 = require('./services/website_api_v2')
+const createWebsiteQueryAPI = require('./services/website_query_api')
 const createServiceAPI = require('./services/service_api')
 const createVoucherAPI = require('./services/voucher_api')
 const createSlackNotifier = require('./services/slack_notifier')
@@ -99,6 +100,7 @@ const app = createURLNormalization({
                       services: {
                         websiteAPI: createWebsiteAPIV2({
                           services: {
+                            websiteQueryAPI: createWebsiteQueryAPI({ collections }),
                             serviceAPI: createServiceAPI({
                               collections,
                               services: {
