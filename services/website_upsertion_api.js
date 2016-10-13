@@ -48,8 +48,15 @@ function createWebsiteUpsertionAPI ({ collections: { websites, users } }) {
         !maybeWebsite
           ? defaults(body)
           : Object.assign({}, maybeWebsite, body),
-        { _id: websiteID, owner: req.headers['x-user'] }
+        { _id: websiteID }
       )
+    website.owner =
+      maybeWebsite
+        ? (req.headers['x-user'] === maybeWebsite.owner
+          ? website.owner
+          : maybeWebsite.owner
+        )
+        : req.headers['x-user']
     if (!validate(website, schema).valid) throw createError(400, 'Invalid json body')
     const maxNumberOfUsers = Number(req.headers['x-plan-max-number-of-users'])
     if (website.users.length > maxNumberOfUsers) {

@@ -81,8 +81,8 @@ test('updates website with default values', async t => {
   const user = 'test-user-123'
   const existingWebsite = {
     _id: 'my-site-0001',
-    owner: user,
-    users: [],
+    owner: 'user',
+    users: [user],
     defaultLanguage: 'en',
     languages: ['en'],
     noLangFields: [],
@@ -116,8 +116,8 @@ test('updates website with default values', async t => {
   const body = await res.json()
   const expectedBody = {
     _id: body._id,
-    owner: user,
-    users: [],
+    owner: 'user',
+    users: [user],
     defaultLanguage: 'en',
     languages: ['en'],
     noLangFields: [],
