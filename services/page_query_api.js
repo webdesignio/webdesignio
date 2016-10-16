@@ -1,8 +1,8 @@
 'use strict'
 
-const { Transform } = require('stream')
 const co = require('co')
 const { createError, sendError } = require('micro')
+const createJSONArrayStream = require('../lib/json_array_stream')
 
 module.exports = createPageQueryAPI
 
@@ -32,24 +32,8 @@ function createPageQueryAPI ({ collections: { websites, pages } }) {
       cursor.on('error', e => sendError(req, res, e))
       res.setHeader('Transfer-Encoding', 'chunked')
       res.setHeader('Content-Type', 'application/json')
-      cursor.pipe(createObjectWriter()).pipe(res)
+      cursor.pipe(createJSONArrayStream()).pipe(res)
       return null
-    }
-  })
-}
-
-function createObjectWriter () {
-  let first = true
-  return new Transform({
-    objectMode: true,
-    transform (o, encoding, callback) {
-      const data = (!first ? ',' : '[') + JSON.stringify(o)
-      first = false
-      callback(null, data)
-    },
-    flush (callback) {
-      this.push(first ? '[]' : ']')
-      callback(null)
     }
   })
 }
