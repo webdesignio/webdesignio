@@ -7,10 +7,18 @@ const createRouter = require('../lib/router')
 
 module.exports = createWebsiteAPI
 
-function createWebsiteAPI ({ services: { websiteQueryAPI, serviceAPI, pageAPI } }) {
+function createWebsiteAPI ({
+  services: {
+    websiteQueryAPI,
+    serviceAPI,
+    pageAPI,
+    objectAPI
+  }
+}) {
   const router = createRouter([
     [p('/:website/services', { end: false }), serviceAPI],
     [p('/:website/pages', { end: false }), pageAPI],
+    [p('/:website/objects', { end: false }), objectAPI],
     [p('/:website'), null]
   ])
 

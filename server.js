@@ -37,6 +37,8 @@ const createVoucherAPI = require('./services/voucher_api')
 const createSlackNotifier = require('./services/slack_notifier')
 const createPageAPI = require('./services/page_api')
 const createPageQueryAPI = require('./services/page_query_api')
+const createObjectAPI = require('./services/object_api')
+const createObjectQueryAPIV2 = require('./services/object_query_api_v2.js')
 
 mongoose.Promise = Promise
 mongoose.connect(config.get('mongodb'))
@@ -112,6 +114,11 @@ const app = createURLNormalization({
                             pageAPI: createPageAPI({
                               services: {
                                 pageQueryAPI: createPageQueryAPI({ collections })
+                              }
+                            }),
+                            objectAPI: createObjectAPI({
+                              services: {
+                                objectQueryAPI: createObjectQueryAPIV2({ collections })
                               }
                             })
                           }
