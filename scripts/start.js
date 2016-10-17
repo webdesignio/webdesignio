@@ -13,7 +13,11 @@ if (process.env.NODE_ENV !== 'production') {
   spawn('nodemon', ['-w', 'services', '--', '-r', 'dotenv/config', 'services/worker'], { stdio: 'inherit' })
   console.log('    - starting engine and watching sources ...')
   console.log()
-  spawn('nodemon', ['-w', 'server.js', '-w', 'services', '--', '-r', 'dotenv/config', 'server'], { stdio: 'inherit' })
+  spawn('nodemon', [
+    '-w', 'server.js',
+    '-w', 'services',
+    '--', '-r', 'dotenv/config', 'server'
+  ], { stdio: 'inherit' })
 } else {
   require('../server')
 }
