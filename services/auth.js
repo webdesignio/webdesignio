@@ -21,7 +21,11 @@ function createAuthorization ({
     if (
       req.url === '/login' ||
       req.url === '/api/v1/tokens' ||
-      (req.url.match(/^\/api\/v1\/users/) && req.method === 'POST')
+      (req.url.match(/^\/api\/v1\/users/) && req.method === 'POST') ||
+      (
+        req.url.match(/^\/api\/v1\/(pages|objects|websites|meta)/) &&
+        req.method === 'GET'
+      )
     ) {
       return yield upstream(req, res)
     }

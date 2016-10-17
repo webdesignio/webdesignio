@@ -15,8 +15,6 @@ function buildContext ({ components, record, website, meta, language, input }) {
     const component = components[componentName]
     if (!component) return
     const props = JSON.parse(($(this).attr('data-props') || '{}'))
-    $(this).attr('data-component', null)
-    $(this).attr('data-props', null)
     $(this).html(renderComponent({ component, props }))
   })
   return $.html()
@@ -38,7 +36,7 @@ function buildContext ({ components, record, website, meta, language, input }) {
     const context = vm.createContext({
       module: m,
       exports: m.exports,
-      __PROPS__: Object.assign({}, props, { store })
+      __PROPS__: Object.assign({}, props, { store, isPublished: true })
     })
     vm.runInContext(
       `${component}\n__OUT__ = module.exports(__PROPS__)`,

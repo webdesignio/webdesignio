@@ -13,7 +13,7 @@ function createWebsiteAPI ({ collections: { websites }, services: { websiteUpser
     if (req.method === 'GET') {
       const website = yield websites.findOne({ _id: websiteID })
       if (!website) throw createError(404)
-      return mask(website)
+      return mask(website, !req.headers['x-user'])
     } else if (req.method === 'PUT') {
       return yield websiteUpsertionAPI(req, res)
     } else {
@@ -22,8 +22,13 @@ function createWebsiteAPI ({ collections: { websites }, services: { websiteUpser
   })
 }
 
-function mask (website) {
+function mask (website, restrictive) {
   const o = Object.assign({}, website)
   delete o.config
+  if (restrictive) {
+    delete o.users
+    delete o.collaborators
+    delete o.owner
+  }
   return o
 }
