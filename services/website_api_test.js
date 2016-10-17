@@ -23,7 +23,8 @@ test('sends website', async t => {
   const service = websiteAPI({ collections: { websites: { findOne } }, services: {} })
   const url = await listen(micro(service))
   const res = await fetch(`${url}?website=${existingWebsite._id}`, {
-    method: 'GET'
+    method: 'GET',
+    headers: { 'X-User': '123' }
   })
   t.deepEqual(findOne.args[0][0], { _id: existingWebsite._id })
   t.is(res.status, 200)
