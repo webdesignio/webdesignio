@@ -4,6 +4,10 @@ const co = require('co')
 const { send } = require('micro')
 const p = require('path-to-regexp')
 const createRouter = require('http-service-router')
+const helmet = require('helmet')
+const Bluebird = require('bluebird')
+
+const noCacheAsync = Bluebird.promisify(helmet.noCache())
 
 module.exports = createAPI
 
@@ -18,6 +22,7 @@ function createAPI ({
 
   return co.wrap(function * api (req, res) {
     const r = router.match(req.url)
+    yield noCacheAsync(req, res)
     if (r) {
       req.url = r.url
       return yield r.service(req, res)

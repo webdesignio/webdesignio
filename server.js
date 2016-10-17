@@ -39,6 +39,7 @@ const createPageAPI = require('./services/page_api')
 const createPageQueryAPI = require('./services/page_query_api')
 const createObjectAPI = require('./services/object_api')
 const createObjectQueryAPIV2 = require('./services/object_query_api_v2.js')
+const createProtector = require('./services/protector.js')
 
 mongoose.Promise = Promise
 mongoose.connect(config.get('mongodb'))
@@ -66,67 +67,71 @@ const queue = kue.createQueue({ redis: config.get('redis') })
 const slackNotifier = createSlackNotifier({ url: process.env.SLACK_MESSAGE_URL })
 const app = createURLNormalization({
   services: {
-    upstream: createRequestExtractor({
+    upstream: createProtector({
       services: {
-        upstream: createAuthorization({
-          secret,
-          errorPages,
-          collections: { users, websites },
+        upstream: createRequestExtractor({
           services: {
-            upstream: createPlanInspector({
-              collections,
+            upstream: createAuthorization({
+              secret,
+              errorPages,
+              collections: { users, websites },
               services: {
-                upstream: createApp({
+                upstream: createPlanInspector({
+                  collections,
                   services: {
-                    api: createAPI({
-                      tokenAPI: createTokenAPI({ secret, users }),
-                      deploymentAPI: createDeploymentAPI({ getGfs }),
-                      websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
-                      metaAPI: createMetaAPI({ getGfs }),
-                      websiteAPI: createWebsiteAPI({
-                        collections,
-                        services: {
-                          websiteUpsertionAPI: createWebsiteUpsertionAPI({ collections })
-                        }
-                      }),
-                      recordAPI: createRecordAPI({ pages, objects }),
-                      assetAPI: createAssetAPI({ s3, collections }),
-                      userAPI: createUserAPI({
-                        services: {
-                          userUpsertionAPI: createUserUpsertionAPI({
-                            collections,
-                            services: { slackNotifier }
-                          })
-                        }
-                      })
-                    }),
-                    apiV2: createAPIV2({
+                    upstream: createApp({
                       services: {
-                        websiteAPI: createWebsiteAPIV2({
+                        api: createAPI({
+                          tokenAPI: createTokenAPI({ secret, users }),
+                          deploymentAPI: createDeploymentAPI({ getGfs }),
+                          websiteBuildingAPI: createWebsiteBuildingAPI({ queue }),
+                          metaAPI: createMetaAPI({ getGfs }),
+                          websiteAPI: createWebsiteAPI({
+                            collections,
+                            services: {
+                              websiteUpsertionAPI: createWebsiteUpsertionAPI({ collections })
+                            }
+                          }),
+                          recordAPI: createRecordAPI({ pages, objects }),
+                          assetAPI: createAssetAPI({ s3, collections }),
+                          userAPI: createUserAPI({
+                            services: {
+                              userUpsertionAPI: createUserUpsertionAPI({
+                                collections,
+                                services: { slackNotifier }
+                              })
+                            }
+                          })
+                        }),
+                        apiV2: createAPIV2({
                           services: {
-                            websiteQueryAPI: createWebsiteQueryAPI({ collections }),
-                            serviceAPI: createServiceAPI({
-                              collections,
+                            websiteAPI: createWebsiteAPIV2({
                               services: {
-                                voucherAPI: createVoucherAPI({ collections })
-                              }
-                            }),
-                            pageAPI: createPageAPI({
-                              services: {
-                                pageQueryAPI: createPageQueryAPI({ collections })
-                              }
-                            }),
-                            objectAPI: createObjectAPI({
-                              services: {
-                                objectQueryAPI: createObjectQueryAPIV2({ collections })
+                                websiteQueryAPI: createWebsiteQueryAPI({ collections }),
+                                serviceAPI: createServiceAPI({
+                                  collections,
+                                  services: {
+                                    voucherAPI: createVoucherAPI({ collections })
+                                  }
+                                }),
+                                pageAPI: createPageAPI({
+                                  services: {
+                                    pageQueryAPI: createPageQueryAPI({ collections })
+                                  }
+                                }),
+                                objectAPI: createObjectAPI({
+                                  services: {
+                                    objectQueryAPI: createObjectQueryAPIV2({ collections })
+                                  }
+                                })
                               }
                             })
                           }
-                        })
+                        }),
+                        login: createLogin({ getGfs, errorPages }),
+                        editable: createEditable({ getGfs, errorPages })
                       }
-                    }),
-                    login: createLogin({ getGfs, errorPages }),
-                    editable: createEditable({ getGfs, errorPages })
+                    })
                   }
                 })
               }
