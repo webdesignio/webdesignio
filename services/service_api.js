@@ -3,7 +3,7 @@
 const co = require('co')
 const p = require('path-to-regexp')
 const { createError } = require('micro')
-const createRouter = require('../lib/router')
+const createRouter = require('http-service-router')
 
 module.exports = createServiceAPI
 

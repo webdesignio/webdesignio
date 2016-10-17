@@ -38,6 +38,7 @@
     "cookie": "^0.3.1",
     "cors": "^2.8.1",
     "gridfs-stream": "^1.1.1",
+    "http-service-router": "^1.0.2",
     "jsonschema": "^1.1.0",
     "jsonwebtoken": "^7.1.8",
     "kue": "^0.11.1",
