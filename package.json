@@ -43,7 +43,7 @@
     "jsonschema": "^1.1.0",
     "jsonwebtoken": "^7.1.8",
     "kue": "^0.11.1",
-    "lodash": "^4.15.0",
+    "lodash": "^4.16.5",
     "micro": "^6.0.2",
     "mkdirp": "^0.5.1",
     "mongoose": "^4.6.1",
