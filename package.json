@@ -65,7 +65,7 @@
   "devDependencies": {
     "ava": "^0.16.0",
     "babel-eslint": "^7.0.0",
-    "dotenv": "^2.0.0",
+    "dotenv": "^3.0.0",
     "greenkeeper-postpublish": "^1.0.1",
     "node-fetch": "^1.6.1",
     "nodemon": "^1.10.2",
