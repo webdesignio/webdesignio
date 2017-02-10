@@ -44,7 +44,7 @@
     "jsonwebtoken": "^7.1.8",
     "kue": "^0.11.1",
     "lodash": "^4.15.0",
-    "micro": "^6.0.2",
+    "micro": "^7.0.4",
     "mkdirp": "^0.5.1",
     "mongoose": "^4.6.1",
     "morgan": "^1.7.0",
