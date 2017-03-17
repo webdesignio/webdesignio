@@ -78,7 +78,7 @@
     "npm": "^3.10.3"
   },
   "optionalDependencies": {
-    "surge": "^0.18.0"
+    "surge": "^0.19.0"
   },
   "repository": {
     "type": "git",
