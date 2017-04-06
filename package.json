@@ -70,7 +70,7 @@
     "node-fetch": "^1.6.1",
     "nodemon": "^1.10.2",
     "sinon": "^1.17.5",
-    "standard": "^8.0.0",
+    "standard": "^10.0.1",
     "test-listen": "^1.0.0"
   },
   "engines": {
