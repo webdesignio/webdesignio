@@ -46,7 +46,7 @@
     "lodash": "^4.15.0",
     "micro": "^6.0.2",
     "mkdirp": "^0.5.1",
-    "mongoose": "^4.6.1",
+    "mongoose": "^4.9.6",
     "morgan": "^1.7.0",
     "mustache": "^2.2.1",
     "path-to-regexp": "^1.5.3",
