@@ -59,7 +59,7 @@
     "stream-meter": "^1.0.4",
     "throng": "^4.0.0",
     "tmp": "0.0.30",
-    "yargs": "^6.0.0",
+    "yargs": "^8.0.1",
     "yauzl": "^2.6.0"
   },
   "devDependencies": {
