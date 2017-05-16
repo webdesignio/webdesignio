@@ -27,7 +27,7 @@
   "license": "ISC",
   "dependencies": {
     "@webdesignio/floorman": "^1.0.1",
-    "aws-sdk": "^2.6.3",
+    "aws-sdk": "^2.52.0",
     "bcrypt": "^0.8.7",
     "bluebird": "^3.4.6",
     "body-parser": "^1.15.2",
